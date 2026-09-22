@@ -87,9 +87,6 @@ select.cell{width:52px;padding:4px 2px;text-align:center;font-weight:700}
 select.cell.warn{background:var(--danger-soft);color:var(--danger-ink);border-color:var(--danger)}
 select.cell.prevmonth1{background:var(--danger-soft);color:var(--danger-ink);border-color:var(--danger)}
 select.cell.prevmonth2{background:var(--warn-soft);color:var(--warn-ink);border-color:var(--warn)}
-.cell-note{font-size:9px;line-height:1.3;margin-top:2px;white-space:nowrap;text-align:center}
-.cell-note.note1{color:var(--danger)}
-.cell-note.note2{color:var(--warn)}
 tr.completion-row td{background:var(--surface-2);border-top:2px solid var(--border)}
 tr.completion-row .datecell .d{font-weight:700;color:var(--text-2)}
 .complete-toggle{width:100%;padding:5px 2px;font-size:11px;font-weight:700;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text-3);cursor:pointer}
@@ -97,7 +94,6 @@ tr.completion-row .datecell .d{font-weight:700;color:var(--text-2)}
 #availTable td.datecell,#availTable th.datecell{position:sticky;left:0;z-index:1;background:var(--surface);box-shadow:1px 0 0 var(--border)}
 #availTable thead th.datecell{z-index:2;background:var(--surface-2)}
 .na{color:var(--text-3)}
-.eventrow-actions{display:flex;gap:4px;justify-content:flex-start}
 .emptylist{color:var(--text-3);font-size:12px;padding:10px 2px}
 .summary{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
 .tile{border:1px solid var(--border);border-radius:11px;padding:10px 12px;background:var(--surface-2)}
@@ -183,11 +179,10 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
 
       <div class="compare-grid">
         <details class="disclosure" id="eventsCard">
-          <summary><span class="stitle">日程一覧・個別追加/削除</span><span class="ssum" id="eventsSummary"></span></summary>
+          <summary><span class="stitle">日程一覧</span><span class="ssum" id="eventsSummary"></span></summary>
           <div class="disclosure-body">
-            <p class="desc">1件ずつ追加・削除する場合はこちら（複数種別は読点「、」区切り）。単体開催の飲み会/カフェ会/食事会だけ、とよかず・やまぴーが対象になります。「削除」は完全消去せず保管（archived）フラグを立てるだけです。</p>
-            <div id="eventForm"></div>
-            <div class="tablewrap" style="margin-top:12px">
+            <p class="desc">②で一括登録した日程の一覧です。</p>
+            <div class="tablewrap">
               <table id="eventsTable"><thead></thead><tbody></tbody></table>
             </div>
           </div>
@@ -754,10 +749,6 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
   }
 
   // ---------- render: events ----------
-  function parseTypes(str){
-    return str.split(/[、,]/).map(function(s){ return s.trim(); }).filter(Boolean);
-  }
-
   var DAY_LINE_RE = /(\d{1,2})\s*日\s*[（(]\s*([日月火水木金土])\s*[・、]?\s*(祝)?\s*[）)]/;
   function parseScheduleBulk(text){
     var rawLines = (text||"").split("\n").map(function(l){ return l.trim(); }).filter(function(l){ return l.length>0; });
@@ -899,70 +890,18 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
     box.appendChild(feedback);
   }
 
-  function renderEventForm(){
-    var box = document.getElementById("eventForm");
-    box.innerHTML = "";
-    var dateInput = el("input",{type:"date"});
-    var typesInput = el("input",{type:"text", placeholder:"例：CLC、Lmtg、フェス"});
-    var venueInput = el("input",{type:"text", placeholder:"荏原"});
-    var holidayInput = el("input",{type:"checkbox"});
-    var tentativeInput = el("input",{type:"checkbox"});
-    var feedback = el("div",{class:"import-alert"});
-    function showFeedback(kind, msg){ feedback.textContent = msg; feedback.className = "import-alert show "+kind; }
-
-    var addBtn = el("button",{text:"日程を追加", onclick:function(){
-      if(!dateInput.value || !typesInput.value.trim()){ showFeedback("err","日付と種別は必須です。"); return; }
-      if(!db){ showFeedback("err","共有保存の準備中です。数秒待ってからもう一度お試しください。"); return; }
-      var d = new Date(dateInput.value+"T00:00:00");
-      var wd = ["日","月","火","水","木","金","土"][d.getDay()];
-      var ev = {
-        id: dateInput.value, date: dateInput.value, weekday: wd,
-        holiday: holidayInput.checked, tentative: tentativeInput.checked,
-        types: parseTypes(typesInput.value), venue: venueInput.value.trim()||"荏原"
-      };
-      addBtn.disabled = true;
-      mergeEventsLocal([ev]);
-      state.availability[ev.id] = {values:{}};
-      render();
-      Promise.all([
-        db.collection("events").doc(ev.id).set(ev),
-        db.collection("availability").doc(ev.id).set({values:{}})
-      ]).then(function(){
-        addBtn.disabled = false;
-        showFeedback("ok","✔ "+ev.date+"を追加しました。");
-        dateInput.value=""; typesInput.value=""; venueInput.value=""; holidayInput.checked=false; tentativeInput.checked=false;
-      }).catch(function(err){
-        addBtn.disabled = false;
-        var detail = (err && (err.message || err.code)) ? String(err.message || err.code) : String(err);
-        showFeedback("err","保存に失敗しました（"+detail+"）。");
-      });
-    }});
-
-    var form = el("div",{class:"row"},[
-      el("div",{class:"field"},[el("label",{text:"日付"}), dateInput]),
-      el("div",{class:"field",style:"min-width:220px"},[el("label",{text:"種別（読点区切り）"}), typesInput]),
-      el("div",{class:"field",style:"min-width:100px"},[el("label",{text:"場所"}), venueInput]),
-      el("div",{class:"field"},[el("label",{text:"祝日"}), holidayInput]),
-      el("div",{class:"field"},[el("label",{text:"仮日程"}), tentativeInput]),
-      addBtn
-    ]);
-    box.appendChild(form);
-    box.appendChild(feedback);
-  }
-
   function renderEventsTable(){
     var table = document.getElementById("eventsTable");
     var thead = table.querySelector("thead"); var tbody = table.querySelector("tbody");
     thead.innerHTML=""; tbody.innerHTML="";
     thead.appendChild(el("tr",{},[
       el("th",{class:"datecell",text:"日程"}),
-      el("th",{text:"場所"}),
-      el("th",{text:"操作"})
+      el("th",{text:"場所"})
     ]));
     var summarySpan = document.getElementById("eventsSummary");
     if(summarySpan){ summarySpan.textContent = "日程"+state.events.length+"件"; }
     if(state.events.length===0){
-      tbody.appendChild(el("tr",{},[el("td",{colspan:"3",class:"emptylist",text:"日程がまだありません。上のフォームから追加してください。"})]));
+      tbody.appendChild(el("tr",{},[el("td",{colspan:"2",class:"emptylist",text:"日程がまだありません。②で一括登録してください。"})]));
       return;
     }
     state.events.forEach(function(ev){
@@ -973,17 +912,7 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
         tags
       ]);
       var venueCell = el("td",{text: ev.venue||""});
-      var actionCell = el("td",{},[
-        el("div",{class:"eventrow-actions"},[
-          el("button",{class:"ghost", text:"削除（保管）", onclick:function(){
-            if(!db) return;
-            state.events = state.events.filter(function(e){ return e.id!==ev.id; });
-            render();
-            db.collection("events").doc(ev.id).update({archived:true});
-          }})
-        ])
-      ]);
-      tbody.appendChild(el("tr",{},[dcell, venueCell, actionCell]));
+      tbody.appendChild(el("tr",{},[dcell, venueCell]));
     });
   }
 
@@ -1041,15 +970,7 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
             return db.collection("availability").doc(ev.id).set(state.availability[ev.id]);
           });
         });
-        var tdChildren = [sel];
-        // ホバー(タップ)しなくても、どの種別が一致したのか見えるよう
-        // 小さな注記を常時表示する(スマホではtitleツールチップが出ないため)。
-        if(info.prevMonth1){
-          tdChildren.push(el("div",{class:"cell-note note1", text:info.prevMonth1Types.join("・")}));
-        } else if(info.prevMonth2){
-          tdChildren.push(el("div",{class:"cell-note note2", text:info.prevMonth2Types.join("・")}));
-        }
-        var td = el("td",{},tdChildren);
+        var td = el("td",{},[sel]);
         tr.appendChild(td);
       });
       tbody.appendChild(tr);
@@ -1466,7 +1387,6 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
     renderConfig();
     renderPrevMonth();
     renderBulkImportForm();
-    renderEventForm();
     renderEventsTable();
     renderAvailTable();
     renderResult();
