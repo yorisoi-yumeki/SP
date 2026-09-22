@@ -198,7 +198,7 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
 
       <section class="card" id="currentMonthCard">
         <h2>今月のシフト</h2>
-        <p class="desc">メイン合計（勉強会+M）とサブ回数（勉強会のみ）が均等になるよう自動で割り当てます。名前の後ろの数字は、その人の今月の合計回数（メイン＝勉強会メイン回数／サブ＝サブ回数）です。「コピー」を押すとLINE等に貼り付けられるテキストをコピーし、同時に来月の判定に必要な情報（CLCの前月メイン・前月/前々月の同種別メイン等）を記録します。</p>
+        <p class="desc">メイン合計（勉強会+M）とサブ回数（勉強会のみ）が均等になるよう自動で割り当てます。右端の「回数(確認用)」列はその人の今月の合計回数を示す確認用の参考値で、コピーする内容には含まれません。「コピー」を押すとLINE等に貼り付けられるテキストをコピーし、同時に来月の判定に必要な情報（CLCの前月メイン・前月/前々月の同種別メイン等）を記録します。</p>
         <div class="row">
           <button id="genBtn">自動生成する</button>
           <button id="copyBtn" class="secondary">この結果をコピー</button>
@@ -304,6 +304,8 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
   var SEED_CONFIG = {
     month:"2026-10",
     mCounts: { "こばぴー":0, "だいち":0, "つよぽん":0, "とよかず":0, "ねぎ":0, "まぎー":0, "やまぴー":0, "よう":0, "りん":0 },
+    mEventCount: 11,
+    mPeoplePerEvent: 2,
     entre2Target: [],
     m20List: [],
     m20Source: {
@@ -316,7 +318,7 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
   function defaultConfig(){
     var mCounts = {};
     MEMBERS.forEach(function(m){ mCounts[m]=0; });
-    return { month:"2026-10", mCounts:mCounts, entre2Target:[], m20List:[] };
+    return { month:"2026-10", mCounts:mCounts, mEventCount:11, mPeoplePerEvent:2, entre2Target:[], m20List:[] };
   }
 
   function el(tag, attrs, children){
@@ -405,6 +407,12 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
     if(types.length===1 && RESTRICTED_SOCIAL.indexOf(types[0])>=0) return types[0];
     var social = types.filter(function(t){ return RESTRICTED_SOCIAL.indexOf(t)>=0; });
     return social.length===1 ? social[0] : null;
+  }
+  // 複合日(例：代トレ・コミュ2nd・飲み会)でも、＋1枠がどの種別への追加なのか
+  // 一目で分かるようにするラベル。extraは現仕様上、飲み会のみで発生する。
+  function extraLabel(a){
+    var t = extraSlotType(a);
+    return t ? "（"+t+"のみ）" : "（＋1）";
   }
 
   // ---------- DB wiring ----------
@@ -616,6 +624,61 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
       mRow.appendChild(f);
     });
     box.appendChild(mRow);
+
+    // M必要回数の算出条件(開催回数×1回あたりの人数)
+    var mMetaTitle = document.createElement("div"); mMetaTitle.style.cssText="font-size:12px;font-weight:700;margin:14px 0 6px;color:var(--text-2)";
+    mMetaTitle.textContent = "今月のM開催条件（Mシフト必要回数の算出に使用）";
+    box.appendChild(mMetaTitle);
+    var mMetaRow = el("div",{class:"row"});
+    var mEventCountField = el("div",{class:"field",style:"min-width:120px"},[
+      el("label",{text:"M開催回数"}),
+      el("input",{type:"number", min:"0"})
+    ]);
+    var mEventCountInput = mEventCountField.querySelector("input");
+    mEventCountInput.value = (cfg.mEventCount!=null) ? cfg.mEventCount : 11;
+    mEventCountInput.addEventListener("change", function(){
+      updateConfig({ mEventCount: Number(mEventCountInput.value)||0 });
+    });
+    var mPeopleField = el("div",{class:"field",style:"min-width:120px"},[
+      el("label",{text:"1回あたりの人数"}),
+      el("input",{type:"number", min:"0"})
+    ]);
+    var mPeopleInput = mPeopleField.querySelector("input");
+    mPeopleInput.value = (cfg.mPeoplePerEvent!=null) ? cfg.mPeoplePerEvent : 2;
+    mPeopleInput.addEventListener("change", function(){
+      updateConfig({ mPeoplePerEvent: Number(mPeopleInput.value)||0 });
+    });
+    mMetaRow.appendChild(mEventCountField);
+    mMetaRow.appendChild(mPeopleField);
+    box.appendChild(mMetaRow);
+
+    // Mシフト必要回数(水準均等化の参考値。④で自動生成した後に表示される)
+    var mTargetTitle = document.createElement("div"); mTargetTitle.style.cssText="font-size:12px;font-weight:700;margin:14px 0 6px;color:var(--text-2)";
+    mTargetTitle.textContent = "Mシフト必要回数（勉強会メイン+サブの実績をもとに自動算出／参考値）";
+    box.appendChild(mTargetTitle);
+    if(!state.result){
+      box.appendChild(el("div",{class:"footnote",text:"④で「自動生成する」を押すと、勉強会メイン+サブの実績をもとにここへ表示されます。"}));
+    } else {
+      var mEventCountVal = (cfg.mEventCount!=null?cfg.mEventCount:11);
+      var mPeopleVal = (cfg.mPeoplePerEvent!=null?cfg.mPeoplePerEvent:2);
+      var totalMSlots = mEventCountVal * mPeopleVal;
+      var loads = {};
+      MEMBERS.forEach(function(m){
+        var s = state.result.summary[m];
+        loads[m] = s ? (s.studyMain + s.subTotal) : 0;
+      });
+      var rawTargets = computeMTargets(loads, totalMSlots);
+      var targets = roundPreservingSum(rawTargets, totalMSlots);
+      var mTargetRow = el("div",{class:"row"});
+      MEMBERS.forEach(function(m){
+        mTargetRow.appendChild(el("div",{class:"field",style:"min-width:76px"},[
+          el("label",{text:m}),
+          el("div",{style:"font-weight:900;font-size:15px;padding:6px 0", text:String(targets[m])})
+        ]));
+      });
+      box.appendChild(mTargetRow);
+      box.appendChild(el("div",{class:"footnote",text:"合計"+totalMSlots+"枠（M開催"+mEventCountVal+"回×"+mPeopleVal+"名）を、勉強会メイン+サブの負荷が均等になるよう配分した目安です。上の「今月のMシフト回数」への入力の参考にしてください。"}));
+    }
 
     // entre2 target
     var eTitle = document.createElement("div"); eTitle.style.cssText="font-size:12px;font-weight:700;margin:14px 0 6px;color:var(--text-2)";
@@ -956,6 +1019,41 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
     });
   }
 
+  // ---------- Mシフト必要回数(水準均等化) ----------
+  // 勉強会メイン+サブの負荷(loads)が均等になるよう、総M枠数(total)を
+  // 「水を注ぐように」9名へ配分する(water-filling)。既に負荷が平均以上の人は
+  // 0を割り当て、残りの人数で目標値を再計算…を繰り返す。
+  function computeMTargets(loads, total){
+    var remaining = Object.keys(loads);
+    var result = {};
+    if(total <= 0){ remaining.forEach(function(m){ result[m]=0; }); return result; }
+    while(remaining.length > 0){
+      var sumLoad = remaining.reduce(function(s,m){ return s+loads[m]; }, 0);
+      var target = (sumLoad + total) / remaining.length;
+      var over = remaining.filter(function(m){ return loads[m] >= target; });
+      if(over.length === 0){
+        remaining.forEach(function(m){ result[m] = target - loads[m]; });
+        break;
+      }
+      over.forEach(function(m){ result[m] = 0; });
+      remaining = remaining.filter(function(m){ return loads[m] < target; });
+    }
+    return result;
+  }
+  // 実数の配分値を、合計をtotalに保ったまま整数へ丸める(最大剰余方式)。
+  function roundPreservingSum(values, total){
+    var floors = {}; var remainders = []; var sumFloor = 0;
+    Object.keys(values).forEach(function(m){
+      var f = Math.floor(values[m]);
+      floors[m] = f; sumFloor += f;
+      remainders.push({m:m, r: values[m]-f});
+    });
+    var extra = total - sumFloor;
+    remainders.sort(function(a,b){ return b.r - a.r; });
+    for(var i=0; i<extra && i<remainders.length; i++){ floors[remainders[i].m]++; }
+    return floors;
+  }
+
   // ---------- assignment engine ----------
   function runAssignment(){
     var cfg = state.config || defaultConfig();
@@ -1091,7 +1189,7 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
       ]);
       var mainNames = el("div",{class:"names"});
       (a.main||[]).forEach(function(m){ mainNames.appendChild(el("span",{class:"nametag", text:m})); });
-      if(a.extra){ mainNames.appendChild(el("span",{class:"nametag extra", text:a.extra+"（+1）"})); }
+      if(a.extra){ mainNames.appendChild(el("span",{class:"nametag extra", text:a.extra+extraLabel(a)})); }
       tbody.appendChild(el("tr",{},[dcell, el("td",{},[mainNames])]));
     });
   }
@@ -1113,7 +1211,8 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
     thead.appendChild(el("tr",{},[
       el("th",{class:"datecell",text:"日程"}),
       el("th",{text:"メイン"}),
-      el("th",{text:"サブ"})
+      el("th",{text:"サブ"}),
+      el("th",{text:"回数(確認用)"})
     ]));
     result.assignments.forEach(function(a){
       var dcell = el("td",{class:"datecell"},[
@@ -1123,22 +1222,25 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
       var mainNames = el("div",{class:"names"});
       a.main.forEach(function(m){
         var forced = a.forced && a.forced.indexOf(m)>=0;
-        var c = (result.summary[m]&&result.summary[m].studyMain)||0;
-        mainNames.appendChild(el("span",{class:"nametag"+(forced?" extra":""), text:m+"("+c+")"+(forced?"⚠":"")}));
+        mainNames.appendChild(el("span",{class:"nametag"+(forced?" extra":""), text:m+(forced?"⚠":"")}));
       });
-      if(a.extra){
-        var ec = (result.summary[a.extra]&&result.summary[a.extra].studyMain)||0;
-        mainNames.appendChild(el("span",{class:"nametag extra", text:a.extra+"("+ec+")"+"（+1）"}));
-      }
+      if(a.extra){ mainNames.appendChild(el("span",{class:"nametag extra", text:a.extra+extraLabel(a)})); }
       var subNames = el("div",{class:"names"});
-      a.sub.forEach(function(m){
-        var sc = (result.summary[m]&&result.summary[m].subTotal)||0;
-        subNames.appendChild(el("span",{class:"nametag sub", text:m+"("+sc+")"}));
-      });
-      tbody.appendChild(el("tr",{},[dcell, el("td",{},[mainNames]), el("td",{},[subNames])]));
+      a.sub.forEach(function(m){ subNames.appendChild(el("span",{class:"nametag sub", text:m})); });
+
+      // コピー(buildResultCopyText)には含めない、確認専用の回数列。
+      var mainCounts = a.main.map(function(m){ return m+":"+((result.summary[m]&&result.summary[m].studyMain)||0); });
+      if(a.extra){ mainCounts.push(a.extra+":"+((result.summary[a.extra]&&result.summary[a.extra].studyMain)||0)); }
+      var subCounts = a.sub.map(function(m){ return m+":"+((result.summary[m]&&result.summary[m].subTotal)||0); });
+      var checkCell = el("td",{class:"footnote", style:"text-align:left;white-space:normal;min-width:150px"},[
+        el("div",{text:"メイン："+(mainCounts.join("・")||"-")}),
+        el("div",{text:"サブ："+(subCounts.join("・")||"-")})
+      ]);
+
+      tbody.appendChild(el("tr",{},[dcell, el("td",{},[mainNames]), el("td",{},[subNames]), checkCell]));
     });
     box.appendChild(wrap);
-    box.appendChild(el("div",{class:"footnote",text:"結果は提案です。③のセルの◯△×を変えて再生成すれば調整できます。名前の後ろの数字は今月の合計回数です。"}));
+    box.appendChild(el("div",{class:"footnote",text:"結果は提案です。③のセルの◯△×を変えて再生成すれば調整できます。右端の「回数(確認用)」はコピーには含まれません。"}));
   }
 
   function renderWarnings(){
@@ -1198,21 +1300,11 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
     result.assignments.forEach(function(a){
       lines.push("");
       lines.push(a.date+"（"+a.weekday+"）"+(a.types||[]).join("・"));
-      var mainParts = a.main.map(function(m){
-        var c = (result.summary[m]&&result.summary[m].studyMain)||0;
-        return m+"("+c+")";
-      });
-      if(a.extra){
-        var ec = (result.summary[a.extra]&&result.summary[a.extra].studyMain)||0;
-        mainParts.push(a.extra+"+1("+ec+")");
-      }
+      var mainParts = a.main.slice();
+      if(a.extra){ mainParts.push(a.extra+extraLabel(a)); }
       lines.push("メイン："+mainParts.join("・"));
       if(a.sub && a.sub.length){
-        var subParts = a.sub.map(function(m){
-          var c = (result.summary[m]&&result.summary[m].subTotal)||0;
-          return m+"("+c+")";
-        });
-        lines.push("サブ："+subParts.join("・"));
+        lines.push("サブ："+a.sub.join("・"));
       }
     });
     return lines.join("\n");
