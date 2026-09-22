@@ -136,7 +136,7 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
       <ul class="rules-list">
         <li><b>よう・つよぽん</b>：メインは同日重複不可(サブも可能なら回避)</li>
         <li><b>まぎー・こばぴー</b>：2ndはメイン不可(サブも可能なら回避／不動産所持者のため)</li>
-        <li><b>とよかず・やまぴー</b>：勉強会は「飲み会・カフェ会・食事会（CLC Final）が単体開催」の日のみ対象。飲み会は＋1枠(3人目)、カフェ会・食事会は通常のメイン枠。その分Mシフトに多く入る</li>
+        <li><b>とよかず・やまぴー</b>：勉強会は「飲み会・カフェ会・食事会（CLC Final）が単体開催」の日のみ対象。単体開催の飲み会は2人とも入ってよい(3人目)。複合日の飲み会は＋1枠(最大1名)、カフェ会・食事会は通常のメイン枠。その分Mシフトに多く入る</li>
         <li><b>CLC</b>：メインは2ヶ月連続不可(前月実績から自動判定)</li>
         <li><b>Enトレ2</b>：その月の対象者はメイン不可</li>
         <li><b>カフェ会</b>：メインはM20チャレンジ中の人のみ</li>
@@ -354,7 +354,8 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
     if(member==="とよかず" || member==="やまぴー"){
       if(!socialType) return {value:"×", reason:"複合日のため対象外（単体開催の飲み会/カフェ会/食事会のみ対象）"};
       if(socialType==="カフェ会" && m20List.length>0 && m20List.indexOf(member)<0) return {value:"×", reason:"カフェ会はM20チャレンジ中の人のみ"};
-      if(socialType==="飲み会") return {value:"◯", reason:"＋1枠（飲み会）対象"};
+      if(socialType==="飲み会" && isSocialOnly) return {value:"◯", reason:"単体開催の飲み会(2人とも入ってよい)"};
+      if(socialType==="飲み会") return {value:"◯", reason:"＋1枠（飲み会、最大1名）対象"};
       return {value:"◯", reason:"通常のメイン枠（"+socialType+"）対象"};
     }
     if(hasCLC && clcPrevMain.indexOf(member)>=0) return {value:"×", reason:"前月CLCメイン担当のため2ヶ月連続不可"};
@@ -1065,9 +1066,14 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
 
     sortedEvents.forEach(function(ev){
       var socialType = extraSlotType(ev);
-      // 飲み会だけ3人目(+1枠)が必要。カフェ会・食事会はとよかず・やまぴーも
-      // 通常の2名のメイン枠を他メンバーと取り合う(+1枠は無い)。
-      var includeExtraMembersInMain = socialType==="カフェ会" || socialType==="食事会";
+      var isStandaloneDrink = normTypes(ev.types).length===1 && socialType==="飲み会";
+      // カフェ会・食事会、および単体開催の飲み会は、とよかず・やまぴーも
+      // 通常のメイン枠を他メンバーと取り合う(単体開催の飲み会は2人とも
+      // 一緒に入ってよいため、メイン枠を3枠に拡張する)。
+      // 複合日の飲み会(例：代トレ・コミュ2nd・飲み会)は、従来通り2名+
+      // とよかず/やまぴーから最大1名の+1枠のみ(実績データと同じ挙動)。
+      var includeExtraMembersInMain = socialType==="カフェ会" || socialType==="食事会" || isStandaloneDrink;
+      var targetMainCount = isStandaloneDrink ? 3 : 2;
       var takenToday = {};
 
       var pool = MEMBERS.filter(function(m){
@@ -1083,17 +1089,17 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
 
       var mains = [];
       pool.forEach(function(m){
-        if(mains.length>=2) return;
+        if(mains.length>=targetMainCount) return;
         if(mains.indexOf("よう")>=0 && m==="つよぽん") return;
         if(mains.indexOf("つよぽん")>=0 && m==="よう") return;
         mains.push(m);
       });
       var forced = [];
-      if(mains.length<2){
+      if(mains.length<targetMainCount){
         var fallback = MEMBERS.filter(function(m){ return m!=="とよかず" && m!=="やまぴー" && mains.indexOf(m)<0; })
           .sort(function(a,b){ return membersState[a].mainTotal - membersState[b].mainTotal; });
         fallback.forEach(function(m){
-          if(mains.length>=2) return;
+          if(mains.length>=targetMainCount) return;
           mains.push(m); forced.push(m);
         });
         warnings.push(ev.date+"："+ev.weekday+" メイン候補が不足し、ルール上×の人を仮配置しました（"+forced.join("、")+"）。確認してください。");
@@ -1101,7 +1107,7 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
       mains.forEach(function(m){ membersState[m].mainTotal++; membersState[m].studyMain++; takenToday[m]=true; });
 
       var extraPerson = null;
-      if(socialType==="飲み会"){
+      if(socialType==="飲み会" && !isStandaloneDrink){
         var epool = ["とよかず","やまぴー"].filter(function(m){ return cellInfo(m, ev).value!=="×" && mains.indexOf(m)<0; });
         epool.sort(function(a,b){
           var pa = membersState[a].mainTotal + (wasMainForSameTypeLastMonth(a,ev)?0.5:0) + (cellInfo(a,ev).value==="△"?0.4:0);
