@@ -4,32 +4,13 @@
 :root{
   color-scheme:light;
   --bg:#F5F6F1; --surface:#FFFFFF; --surface-2:#ECEFE7; --border:#DBE0D2;
-  --text:#23261E; --text-2:#5E6552; --text-3:#96A084;
+  --text:#23261E; --text-2:#5E6552; --text-3:#7B8467;
   --accent:#2F5D50; --accent-ink:#FFFFFF; --accent-soft:#DCE9E2; --accent-soft-ink:#1D4438;
   --danger:#9C3B2C; --danger-soft:#F6DED7; --danger-ink:#6E2A1E;
   --warn:#93661E; --warn-soft:#F1E6CC; --warn-ink:#5F4212;
   --track:#E3E6DC;
 }
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    color-scheme:dark;
-    --bg:#171A14; --surface:#1F231A; --surface-2:#262B20; --border:#333A2B;
-    --text:#ECEFE4; --text-2:#A9B097; --text-3:#767D67;
-    --accent:#7FC8AC; --accent-ink:#0E211B; --accent-soft:#1E3931; --accent-soft-ink:#BEE9D8;
-    --danger:#E4917E; --danger-soft:#3E2019; --danger-ink:#F5C0B0;
-    --warn:#DDB35B; --warn-soft:#3B2F16; --warn-ink:#F1D492;
-    --track:#2B3123;
-  }
-}
-:root[data-theme="dark"]{
-  color-scheme:dark;
-  --bg:#171A14; --surface:#1F231A; --surface-2:#262B20; --border:#333A2B;
-  --text:#ECEFE4; --text-2:#A9B097; --text-3:#767D67;
-  --accent:#7FC8AC; --accent-ink:#0E211B; --accent-soft:#1E3931; --accent-soft-ink:#BEE9D8;
-  --danger:#E4917E; --danger-soft:#3E2019; --danger-ink:#F5C0B0;
-  --warn:#DDB35B; --warn-soft:#3B2F16; --warn-ink:#F1D492;
-  --track:#2B3123;
-}
+/* 常にライトモード表示（端末のダーク設定に関わらず固定） */
 *{box-sizing:border-box}
 body{
   margin:0; background:var(--bg); color:var(--text);
@@ -47,12 +28,13 @@ body{
 .rules-list li::before{content:"";position:absolute;left:0;top:6px;width:6px;height:6px;border-radius:2px;background:var(--accent)}
 .rules-list b{color:var(--text);font-weight:700}
 .rules-legend{margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:11px;color:var(--text-2);display:flex;flex-direction:column;gap:4px}
-.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.compare-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:20px;align-items:start}
+.compare-grid>*{min-width:0}
+.compare-grid table{min-width:0}
 @media (max-width:880px){
   .layout{grid-template-columns:1fr}
   .rules-panel{position:static;order:2}
   .main-col{order:1}
-  .compare-grid{grid-template-columns:1fr}
 }
 details.disclosure{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:0}
 details.disclosure[open]{padding-bottom:6px}
@@ -104,6 +86,8 @@ td.datecell,th.datecell{text-align:left;min-width:190px}
 select.cell{width:52px;padding:4px 2px;text-align:center;font-weight:700}
 select.cell.warn{background:var(--danger-soft);color:var(--danger-ink);border-color:var(--danger)}
 select.cell.prevmain{border-color:var(--warn);box-shadow:inset 0 0 0 1px var(--warn)}
+#availTable td.datecell,#availTable th.datecell{position:sticky;left:0;z-index:1;background:var(--surface);box-shadow:1px 0 0 var(--border)}
+#availTable thead th.datecell{z-index:2;background:var(--surface-2)}
 .na{color:var(--text-3)}
 .eventrow-actions{display:flex;gap:4px;justify-content:flex-start}
 .emptylist{color:var(--text-3);font-size:12px;padding:10px 2px}
@@ -151,11 +135,10 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
       <ul class="rules-list">
         <li><b>よう・つよぽん</b>：メインは同日重複不可(サブも可能なら回避)</li>
         <li><b>まぎー・こばぴー</b>：2ndはメイン不可(サブも可能なら回避／不動産所持者のため)</li>
-        <li><b>とよかず・やまぴー</b>：勉強会は「飲み会・カフェ会・食事会が単体開催」の日の＋1枠のみ。その分Mシフトに多く入る</li>
+        <li><b>とよかず・やまぴー</b>：勉強会は「飲み会・カフェ会・食事会（CLC Final）が単体開催」の日のみ。その分Mシフトに多く入る</li>
         <li><b>CLC</b>：メインは2ヶ月連続不可(前月実績から自動判定)</li>
         <li><b>Enトレ2</b>：その月の対象者はメイン不可</li>
         <li><b>カフェ会</b>：メインはM20チャレンジ中の人のみ</li>
-        <li><b>CLC Final</b>：8/11/2/5月…に食事会が改名したもの。食事会と同ルール(CLCの連続禁止とは無関係)</li>
         <li><b>前月同種別メイン</b>：できれば今月は別の人を優先(必須ではない)</li>
         <li><b>合計バランス</b>：勉強会メイン＋M入力数を9名で均等化／勉強会サブは別枠で均等化</li>
       </ul>
@@ -180,35 +163,24 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
         <div id="bulkImportForm" class="stack"></div>
       </section>
 
-      <details class="disclosure" id="eventsCard">
-        <summary><span class="stitle">日程一覧・個別追加/削除</span><span class="ssum" id="eventsSummary"></span></summary>
-        <div class="disclosure-body">
-          <p class="desc">1件ずつ追加・削除する場合はこちら（複数種別は読点「、」区切り）。単体開催の飲み会/カフェ会/食事会だけ、とよかず・やまぴーが対象になります。「削除」は完全消去せず保管（archived）フラグを立てるだけです。</p>
-          <div id="eventForm"></div>
-          <div class="tablewrap" style="margin-top:12px">
-            <table id="eventsTable"><thead></thead><tbody></tbody></table>
-          </div>
-        </div>
-      </details>
-
       <div class="compare-grid">
+        <details class="disclosure" id="eventsCard">
+          <summary><span class="stitle">日程一覧・個別追加/削除</span><span class="ssum" id="eventsSummary"></span></summary>
+          <div class="disclosure-body">
+            <p class="desc">1件ずつ追加・削除する場合はこちら（複数種別は読点「、」区切り）。単体開催の飲み会/カフェ会/食事会だけ、とよかず・やまぴーが対象になります。「削除」は完全消去せず保管（archived）フラグを立てるだけです。</p>
+            <div id="eventForm"></div>
+            <div class="tablewrap" style="margin-top:12px">
+              <table id="eventsTable"><thead></thead><tbody></tbody></table>
+            </div>
+          </div>
+        </details>
+
         <section class="card" id="prevMonthCard">
           <h2>前月のシフト(参考)</h2>
           <p class="desc" id="prevMonthDesc"></p>
           <div class="tablewrap">
             <table class="result-table" id="prevMonthTable"><thead></thead><tbody></tbody></table>
           </div>
-        </section>
-
-        <section class="card" id="currentMonthCard">
-          <h2>今月のシフト</h2>
-          <p class="desc">メイン合計（勉強会+M）とサブ回数（勉強会のみ）が均等になるよう自動で割り当てます。「確定」を押すと、今回CLCのメインを担当した人を記録します（①のルール「CLC 2ヶ月連続不可」を翌月も自動判定するために必要な記録です）。</p>
-          <div class="row">
-            <button id="genBtn">自動生成する</button>
-            <button id="commitBtn" class="secondary" disabled>この結果を確定</button>
-          </div>
-          <div id="warnBox"></div>
-          <div id="resultBody"></div>
         </section>
       </div>
 
@@ -221,6 +193,17 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
           </div>
         </div>
       </details>
+
+      <section class="card" id="currentMonthCard">
+        <h2>今月のシフト</h2>
+        <p class="desc">メイン合計（勉強会+M）とサブ回数（勉強会のみ）が均等になるよう自動で割り当てます。「確定」を押すと、今回CLCのメインを担当した人を記録します（①のルール「CLC 2ヶ月連続不可」を翌月も自動判定するために必要な記録です）。</p>
+        <div class="row">
+          <button id="genBtn">自動生成する</button>
+          <button id="commitBtn" class="secondary" disabled>この結果を確定</button>
+        </div>
+        <div id="warnBox"></div>
+        <div id="resultBody"></div>
+      </section>
 
       <section class="card" id="summaryCard">
         <h2>バランス確認</h2>
@@ -1052,14 +1035,13 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
 
     if(!hist){
       desc.textContent = "前月(" + (key||"-") + ")のシフトはまだ記録がありません。④で確定すると、翌月このまま参照できるようになります。";
-      tbody.appendChild(el("tr",{},[el("td",{colspan:"3",class:"emptylist",text:"データなし"})]));
+      tbody.appendChild(el("tr",{},[el("td",{colspan:"2",class:"emptylist",text:"データなし"})]));
       return;
     }
-    desc.textContent = (hist.month||key) + "の確定シフトです（参照専用）。";
+    desc.textContent = (hist.month||key) + "の確定シフトです（メインのみ表示／参照専用）。";
     thead.appendChild(el("tr",{},[
       el("th",{class:"datecell",text:"日程"}),
-      el("th",{text:"メイン"}),
-      el("th",{text:"サブ"})
+      el("th",{text:"メイン"})
     ]));
     hist.assignments.forEach(function(a){
       var dcell = el("td",{class:"datecell"},[
@@ -1069,9 +1051,7 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
       var mainNames = el("div",{class:"names"});
       (a.main||[]).forEach(function(m){ mainNames.appendChild(el("span",{class:"nametag", text:m})); });
       if(a.extra){ mainNames.appendChild(el("span",{class:"nametag extra", text:a.extra+"（+1）"})); }
-      var subNames = el("div",{class:"names"});
-      (a.sub||[]).forEach(function(m){ subNames.appendChild(el("span",{class:"nametag sub", text:m})); });
-      tbody.appendChild(el("tr",{},[dcell, el("td",{},[mainNames]), el("td",{},[subNames])]));
+      tbody.appendChild(el("tr",{},[dcell, el("td",{},[mainNames])]));
     });
   }
 
