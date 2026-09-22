@@ -95,16 +95,6 @@ tr.completion-row .datecell .d{font-weight:700;color:var(--text-2)}
 #availTable thead th.datecell{z-index:2;background:var(--surface-2)}
 .na{color:var(--text-3)}
 .emptylist{color:var(--text-3);font-size:12px;padding:10px 2px}
-.summary{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
-.tile{border:1px solid var(--border);border-radius:11px;padding:10px 12px;background:var(--surface-2)}
-.tile .name{font-weight:700;font-size:13px;display:flex;justify-content:space-between;align-items:center}
-.tile .total{font-family:"Zen Kaku Gothic New",sans-serif;font-size:15px;font-weight:900}
-.tile .total.warn{color:var(--warn)}
-.meter{height:6px;border-radius:4px;background:var(--track);margin:7px 0 6px;overflow:hidden}
-.meter i{display:block;height:100%;background:var(--accent);border-radius:4px}
-.tile .breakdown{display:flex;justify-content:space-between;font-size:10.5px;color:var(--text-2)}
-.tile .m-target{margin-top:7px;padding-top:7px;border-top:1px solid var(--border);font-size:11.5px;font-weight:700;color:var(--accent-soft-ink)}
-.tile .m-target.muted{color:var(--text-3);font-weight:500;font-size:10.5px}
 .warnlist{display:flex;flex-direction:column;gap:6px;margin-top:10px}
 .warnitem{background:var(--warn-soft);color:var(--warn-ink);border-radius:9px;padding:7px 10px;font-size:12px}
 .result-table td{text-align:left}
@@ -115,11 +105,14 @@ tr.completion-row .datecell .d{font-weight:700;color:var(--text-2)}
 .footnote{font-size:11px;color:var(--text-3);margin-top:10px;line-height:1.7}
 .count-rank{border-top:1px solid var(--border);padding-top:12px}
 .count-rank-list{display:flex;flex-direction:column;gap:2px}
-.count-rank-row{display:flex;align-items:baseline;gap:8px;padding:4px 2px;font-size:12.5px;border-bottom:1px solid var(--border)}
+.count-rank-row{display:flex;align-items:baseline;gap:8px;padding:4px 2px;font-size:12.5px;border-bottom:1px solid var(--border);flex-wrap:wrap}
 .count-rank-row:last-child{border-bottom:none}
 .count-rank-name{font-weight:700;min-width:52px}
 .count-rank-total{font-family:"Zen Kaku Gothic New",sans-serif;font-weight:900;color:var(--accent)}
+.count-rank-total.warn{color:var(--warn)}
 .count-rank-detail{color:var(--text-3);font-size:11px}
+.count-rank-target{color:var(--accent-soft-ink);font-weight:700;font-size:11px;margin-left:auto}
+.count-rank-target.muted{color:var(--text-3);font-weight:500}
 .import-alert{margin-top:10px;padding:10px 14px;border-radius:8px;font-size:13.5px;font-weight:700;line-height:1.6;display:none}
 .import-alert.show{display:block}
 .import-alert.ok{background:var(--accent-soft);color:var(--accent-soft-ink);border:1px solid var(--accent)}
@@ -209,7 +202,7 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
 
       <section class="card" id="currentMonthCard">
         <h2>今月のシフト</h2>
-        <p class="desc">メイン合計（勉強会+M）とサブ回数（勉強会のみ）が均等になるよう自動で割り当てます。表の下にある「回数(確認用)」はメイン・サブの列とは分離した確認用の一覧で、コピーする内容には含まれません。「コピー」を押すとLINE等に貼り付けられるテキストをコピーし、同時に来月の判定に必要な情報（CLCの前月メイン・前月/前々月の同種別メイン等）を記録します。</p>
+        <p class="desc">メイン合計（勉強会+M）とサブ回数（勉強会のみ）が均等になるよう自動で割り当てます。表の下にある「回数(確認用)」はメイン・サブの列とは分離した確認用の一覧で、コピーする内容には含まれません（合計＝勉強会メイン＋M入力数、サブは別集計。「Mシフト必要回数」は勉強会メイン+サブの実績をもとに自動算出される参考値です）。「コピー」を押すとLINE等に貼り付けられるテキストをコピーし、同時に来月の判定に必要な情報（CLCの前月メイン・前月/前々月の同種別メイン等）を記録します。</p>
         <div class="row">
           <button id="genBtn">自動生成する</button>
           <button id="copyBtn" class="secondary">この結果をコピー</button>
@@ -217,12 +210,6 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
         <div id="copyFeedback" class="import-alert"></div>
         <div id="warnBox"></div>
         <div id="resultBody"></div>
-      </section>
-
-      <section class="card" id="summaryCard">
-        <h2>バランス確認</h2>
-        <p class="desc">合計＝勉強会メイン＋M入力数。サブは勉強会のみで別集計です。「Mシフト必要回数」は、④の自動生成後に勉強会メイン+サブの実績をもとに自動算出される参考値です。</p>
-        <div class="summary" id="summaryBody"></div>
       </section>
     </div>
   </div>
@@ -671,7 +658,7 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
     mMetaRow.appendChild(mEventCountField);
     mMetaRow.appendChild(mPeopleField);
     box.appendChild(mMetaRow);
-    box.appendChild(el("div",{class:"footnote",text:"Mシフト必要回数は、下の「バランス確認」に自動で表示されます（④で自動生成した後）。"}));
+    box.appendChild(el("div",{class:"footnote",text:"Mシフト必要回数は、④で自動生成した後、「今月のシフト」内の「回数(確認用)」に自動で表示されます。"}));
 
     // entre2 target
     var eTitle = document.createElement("div"); eTitle.style.cssText="font-size:12px;font-weight:700;margin:14px 0 6px;color:var(--text-2)";
@@ -1214,23 +1201,46 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
     box.appendChild(el("div",{class:"footnote",text:"結果は提案です。③のセルの◯△×を変えて再生成すれば調整できます。"}));
 
     // メイン・サブ表とは完全に分離した、確認専用の回数ランキング(コピーには含まれない)。
-    // メイン+サブ合計回数の降順で「名前＋合計回数」を列挙する。
+    // 合計(勉強会メイン+M入力数、ルール9の均等化対象)の降順で列挙し、
+    // 内訳(メイン・M・サブ)とMシフト必要回数(水準均等化の参考値)も併記する。
+    // 旧「バランス確認」カードはここに統合済み(重複表示だったため廃止)。
     var countBox = el("div",{class:"count-rank", style:"margin-top:14px"});
     countBox.appendChild(el("div",{style:"font-size:12px;font-weight:700;margin-bottom:8px;color:var(--text-2)", text:"回数(確認用・コピーには含まれません)"}));
+
+    var mTargets = computeMTargetsForResult(result);
     var ranked = MEMBERS.map(function(m){
-      var s = result.summary[m] || {studyMain:0, subTotal:0};
-      return { name:m, main:s.studyMain||0, sub:s.subTotal||0, total:(s.studyMain||0)+(s.subTotal||0) };
+      var s = result.summary[m] || {studyMain:0, mInput:0, subTotal:0, total:0};
+      return { name:m, main:s.studyMain||0, mInput:s.mInput||0, sub:s.subTotal||0, total:s.total||0 };
     }).sort(function(a,b){ return b.total - a.total; });
+    var mean = ranked.reduce(function(a,r){ return a+r.total; },0) / ranked.length;
+
     var rankList = el("div",{class:"count-rank-list"});
     ranked.forEach(function(r){
+      var dev = Math.abs(r.total - mean);
       rankList.appendChild(el("div",{class:"count-rank-row"},[
         el("span",{class:"count-rank-name", text:r.name}),
-        el("span",{class:"count-rank-total", text:r.total+"回"}),
-        el("span",{class:"count-rank-detail", text:"（メイン"+r.main+"・サブ"+r.sub+"）"})
+        el("span",{class:"count-rank-total"+(dev>1?" warn":""), text:r.total+"回"}),
+        el("span",{class:"count-rank-detail", text:"（勉強会メイン"+r.main+"・M"+r.mInput+"・サブ"+r.sub+"）"}),
+        el("span",{class:"count-rank-target", text:"Mシフト必要回数："+mTargets[r.name]})
       ]));
     });
     countBox.appendChild(rankList);
     box.appendChild(countBox);
+  }
+
+  // Mシフト必要回数(水準均等化)：勉強会メイン+サブの実績(loads)をもとに、
+  // 総M枠数(M開催回数×1回あたりの人数)を9名へwater-fillingで配分する。
+  function computeMTargetsForResult(result){
+    var cfg = state.config || defaultConfig();
+    var mEventCountVal = (cfg.mEventCount!=null?cfg.mEventCount:11);
+    var mPeopleVal = (cfg.mPeoplePerEvent!=null?cfg.mPeoplePerEvent:2);
+    var totalMSlots = mEventCountVal * mPeopleVal;
+    var loads = {};
+    MEMBERS.forEach(function(m){
+      var s = result.summary[m];
+      loads[m] = s ? (s.studyMain + s.subTotal) : 0;
+    });
+    return roundPreservingSum(computeMTargets(loads, totalMSlots), totalMSlots);
   }
 
   function renderWarnings(){
@@ -1241,60 +1251,6 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
     var list = el("div",{class:"warnlist"});
     result.warnings.forEach(function(w){ list.appendChild(el("div",{class:"warnitem",text:"⚠ "+w})); });
     box.appendChild(list);
-  }
-
-  function renderSummary(){
-    var box = document.getElementById("summaryBody");
-    box.innerHTML = "";
-    var result = state.result;
-    var cfg = state.config || defaultConfig();
-    var data = MEMBERS.map(function(m){
-      if(result && result.summary && result.summary[m]) return {name:m, s:result.summary[m]};
-      var mInput = Number((cfg.mCounts&&cfg.mCounts[m])||0);
-      return {name:m, s:{studyMain:0, mInput:mInput, subTotal:0, total:mInput}};
-    });
-    var maxTotal = Math.max.apply(null, data.map(function(d){ return d.s.total; }).concat([1]));
-    var mean = data.reduce(function(a,d){ return a+d.s.total; },0) / data.length;
-
-    // Mシフト必要回数：勉強会メイン+サブの負荷をもとに、総M枠数(M開催回数×
-    // 1回あたりの人数)を9名へ水準均等化(water-filling)で自動配分した参考値。
-    var mTargets = null;
-    if(result){
-      var mEventCountVal = (cfg.mEventCount!=null?cfg.mEventCount:11);
-      var mPeopleVal = (cfg.mPeoplePerEvent!=null?cfg.mPeoplePerEvent:2);
-      var totalMSlots = mEventCountVal * mPeopleVal;
-      var loads = {};
-      MEMBERS.forEach(function(m){
-        var s = result.summary[m];
-        loads[m] = s ? (s.studyMain + s.subTotal) : 0;
-      });
-      mTargets = roundPreservingSum(computeMTargets(loads, totalMSlots), totalMSlots);
-    }
-
-    data.forEach(function(d){
-      var dev = Math.abs(d.s.total - mean);
-      var breakdownChildren = [
-        el("span",{text:"勉強会メイン "+d.s.studyMain}),
-        el("span",{text:"M "+d.s.mInput}),
-        el("span",{text:"サブ "+d.s.subTotal})
-      ];
-      var tileChildren = [
-        el("div",{class:"name"},[
-          document.createTextNode(d.name),
-          el("span",{class:"total"+(dev>1?" warn":""), text:String(d.s.total)})
-        ]),
-        el("div",{class:"meter"},[ el("i",{style:"width:"+Math.round((d.s.total/maxTotal)*100)+"%"}) ]),
-        el("div",{class:"breakdown"},breakdownChildren)
-      ];
-      if(mTargets){
-        tileChildren.push(el("div",{class:"m-target", text:"Mシフト必要回数："+mTargets[d.name]}));
-      } else {
-        tileChildren.push(el("div",{class:"m-target muted", text:"Mシフト必要回数：④で自動生成後に表示"}));
-      }
-      var tile = el("div",{class:"tile"}, tileChildren);
-      if(dev>1){ tile.style.borderColor = "var(--warn)"; }
-      box.appendChild(tile);
-    });
   }
 
   // ---------- events ----------
@@ -1391,7 +1347,6 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
     renderAvailTable();
     renderResult();
     renderWarnings();
-    renderSummary();
   }
 
   init();
