@@ -85,7 +85,8 @@ td.datecell,th.datecell{text-align:left;min-width:190px}
 .tag{font-size:10px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:1px 6px;color:var(--text-2)}
 select.cell{width:52px;padding:4px 2px;text-align:center;font-weight:700}
 select.cell.warn{background:var(--danger-soft);color:var(--danger-ink);border-color:var(--danger)}
-select.cell.prevmain{border-color:var(--warn);box-shadow:inset 0 0 0 1px var(--warn)}
+select.cell.prevmonth1{background:var(--danger-soft);color:var(--danger-ink);border-color:var(--danger)}
+select.cell.prevmonth2{background:var(--warn-soft);color:var(--warn-ink);border-color:var(--warn)}
 #availTable td.datecell,#availTable th.datecell{position:sticky;left:0;z-index:1;background:var(--surface);box-shadow:1px 0 0 var(--border)}
 #availTable thead th.datecell{z-index:2;background:var(--surface-2)}
 .na{color:var(--text-3)}
@@ -135,16 +136,17 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
       <ul class="rules-list">
         <li><b>よう・つよぽん</b>：メインは同日重複不可(サブも可能なら回避)</li>
         <li><b>まぎー・こばぴー</b>：2ndはメイン不可(サブも可能なら回避／不動産所持者のため)</li>
-        <li><b>とよかず・やまぴー</b>：勉強会は「飲み会・カフェ会・食事会（CLC Final）が単体開催」の日のみ。その分Mシフトに多く入る</li>
+        <li><b>とよかず・やまぴー</b>：勉強会は「飲み会・カフェ会・食事会（CLC Final）が単体開催」の日のみ対象。飲み会は＋1枠(3人目)、カフェ会・食事会は通常のメイン枠。その分Mシフトに多く入る</li>
         <li><b>CLC</b>：メインは2ヶ月連続不可(前月実績から自動判定)</li>
         <li><b>Enトレ2</b>：その月の対象者はメイン不可</li>
         <li><b>カフェ会</b>：メインはM20チャレンジ中の人のみ</li>
-        <li><b>前月同種別メイン</b>：できれば今月は別の人を優先(必須ではない)</li>
+        <li><b>前月同種別メイン</b>：前月は赤、前々月は黄で表示。できれば別の人を優先(必須ではない)</li>
         <li><b>合計バランス</b>：勉強会メイン＋M入力数を9名で均等化／勉強会サブは別枠で均等化</li>
       </ul>
       <div class="rules-legend">
         <div>◯＝入れる　／　△＝できれば避けたい　／　×＝不可</div>
         <div>×は自動生成で除外、△は優先度を下げて割当</div>
+        <div>可否表の赤背景＝前月同種別メイン、黄背景＝前々月同種別メイン</div>
       </div>
     </aside>
 
@@ -187,7 +189,7 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
       <details class="disclosure" id="availCard" open>
         <summary><span class="stitle">③可否表（◯入れる / △出来れば避けたい / ×不可）</span><span class="ssum" id="availSummary"></span></summary>
         <div class="disclosure-body">
-          <p class="desc">ルール上入れない日は自動で×が入ります。本人の希望で変更できますが、×から変更すると警告色で表示されます。黄枠は「前月、同じ種別でメインだった人」の目印です（できれば今回は別の人を優先／必須ではありません）。左のルール一覧も参照してください。</p>
+          <p class="desc">ルール上入れない日は自動で×が入ります。本人の希望で変更できますが、×から変更すると警告色で表示されます。赤背景は「前月、同じ種別でメインだった人」、黄背景は「前々月、同じ種別でメインだった人」の目印です（できれば今回は別の人を優先／必須ではありません）。左のルール一覧も参照してください。</p>
           <div class="tablewrap">
             <table id="availTable"><thead></thead><tbody></tbody></table>
           </div>
@@ -196,11 +198,12 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
 
       <section class="card" id="currentMonthCard">
         <h2>今月のシフト</h2>
-        <p class="desc">メイン合計（勉強会+M）とサブ回数（勉強会のみ）が均等になるよう自動で割り当てます。「確定」を押すと、今回CLCのメインを担当した人を記録します（①のルール「CLC 2ヶ月連続不可」を翌月も自動判定するために必要な記録です）。</p>
+        <p class="desc">メイン合計（勉強会+M）とサブ回数（勉強会のみ）が均等になるよう自動で割り当てます。名前の後ろの数字は、その人の今月の合計回数（メイン＝勉強会メイン回数／サブ＝サブ回数）です。「コピー」を押すとLINE等に貼り付けられるテキストをコピーし、同時に来月の判定に必要な情報（CLCの前月メイン・前月/前々月の同種別メイン等）を記録します。</p>
         <div class="row">
           <button id="genBtn">自動生成する</button>
-          <button id="commitBtn" class="secondary" disabled>この結果を確定</button>
+          <button id="copyBtn" class="secondary">この結果をコピー</button>
         </div>
+        <div id="copyFeedback" class="import-alert"></div>
         <div id="warnBox"></div>
         <div id="resultBody"></div>
       </section>
@@ -330,9 +333,10 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
     })();
 
     if(member==="とよかず" || member==="やまぴー"){
-      if(!socialType) return {value:"×", reason:"複合日のため対象外（単体開催の飲み会/カフェ会/食事会のみ、＋1枠）"};
+      if(!socialType) return {value:"×", reason:"複合日のため対象外（単体開催の飲み会/カフェ会/食事会のみ対象）"};
       if(socialType==="カフェ会" && m20List.length>0 && m20List.indexOf(member)<0) return {value:"×", reason:"カフェ会はM20チャレンジ中の人のみ"};
-      return {value:"◯", reason:"＋1枠（"+socialType+"）対象"};
+      if(socialType==="飲み会") return {value:"◯", reason:"＋1枠（飲み会）対象"};
+      return {value:"◯", reason:"通常のメイン枠（"+socialType+"）対象"};
     }
     if(hasCLC && clcPrevMain.indexOf(member)>=0) return {value:"×", reason:"前月CLCメイン担当のため2ヶ月連続不可"};
     if(has2nd && (member==="まぎー"||member==="こばぴー")) return {value:"×", reason:"2ndはメイン不可"};
@@ -347,14 +351,17 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
     var override = av && av.values ? av.values[member] : null;
     var value = override || rd.value;
     var warn = !!override && override!=="×" && rd.value==="×";
-    var prevMain = wasMainForSameTypeLastMonth(member, ev);
-    return { value:value, override:!!override, ruleDefault:rd, warn:warn, prevMain:prevMain };
+    // 前月・前々月、同じ種別でメインだった人の目印(前月=赤／前々月=黄)。
+    // 前月に該当する場合は前々月チェックを省略(前月のほうを優先表示)。
+    var prevMonth1 = wasMainForSameType(member, ev, 1);
+    var prevMonth2 = !prevMonth1 && wasMainForSameType(member, ev, 2);
+    return { value:value, override:!!override, ruleDefault:rd, warn:warn, prevMonth1:prevMonth1, prevMonth2:prevMonth2 };
   }
 
-  // 前月、同じ種別でメインだった人はできれば今月は避けたい(メインは当日その勉強会に出られないため)
-  function prevMainByTypeMap(){
+  // n ヶ月前、同じ種別でメインだった人はできれば今月は避けたい(メインは当日その勉強会に出られないため)
+  function mainByTypeMapForMonthsBack(n){
     var cfg = state.config || defaultConfig();
-    var key = prevMonthKey(cfg.month);
+    var key = monthKeyBack(cfg.month, n);
     var hist = key ? state.resultsHistory[key] : null;
     var map = {};
     if(!hist || !hist.assignments) return map;
@@ -367,9 +374,13 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
     });
     return map;
   }
-  function wasMainForSameTypeLastMonth(member, ev){
-    var map = prevMainByTypeMap();
+  function wasMainForSameType(member, ev, monthsBack){
+    var map = mainByTypeMapForMonthsBack(monthsBack);
     return normTypes(ev.types).some(function(t){ return map[t] && map[t][member]; });
+  }
+  // バランス計算(runAssignment)は前月分のみをソフト回避シグナルとして使う。
+  function wasMainForSameTypeLastMonth(member, ev){
+    return wasMainForSameType(member, ev, 1);
   }
 
   function extraSlotType(ev){
@@ -514,13 +525,16 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
     });
   }
 
-  function prevMonthKey(monthStr){
+  function monthKeyBack(monthStr, n){
     var m = /^(\d{4})-(\d{2})$/.exec(monthStr||"");
     if(!m) return null;
-    var y = Number(m[1]), mo = Number(m[2]) - 1; // 0-indexed, subtract 1 more for prev month
-    mo = mo - 1;
-    if(mo < 0){ mo = 11; y = y - 1; }
+    var y = Number(m[1]), mo = Number(m[2]) - 1; // 0-indexed
+    mo -= n;
+    while(mo < 0){ mo += 12; y -= 1; }
     return y + "-" + String(mo+1).padStart(2,"0");
+  }
+  function prevMonthKey(monthStr){
+    return monthKeyBack(monthStr, 1);
   }
 
   var attemptedAvailInit = {};
@@ -891,7 +905,7 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
       var tr = el("tr",{},[dcell]);
       MEMBERS.forEach(function(m){
         var info = cellInfo(m, ev);
-        var sel = el("select",{class:"cell"+(info.warn?" warn":"")+(info.prevMain&&!info.warn?" prevmain":"")});
+        var sel = el("select",{class:"cell"+(info.warn?" warn":"")+(info.prevMonth1&&!info.warn?" prevmonth1":"")+(info.prevMonth2&&!info.warn?" prevmonth2":"")});
         ["◯","△","×"].forEach(function(opt){
           var o = document.createElement("option"); o.value=opt; o.textContent=opt;
           if(opt===info.value) o.selected = true;
@@ -899,7 +913,8 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
         });
         var titleParts = [];
         if(info.ruleDefault.reason) titleParts.push(info.ruleDefault.reason);
-        if(info.prevMain) titleParts.push("前月、同じ種別でメインでした（できれば別の人を優先)");
+        if(info.prevMonth1) titleParts.push("前月、同じ種別でメインでした（できれば別の人を優先)");
+        else if(info.prevMonth2) titleParts.push("前々月、同じ種別でメインでした（参考情報）");
         if(titleParts.length) sel.title = titleParts.join(" / ");
         sel.addEventListener("change", function(){
           if(!db) return;
@@ -931,10 +946,16 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
     var sortedEvents = state.events.slice().sort(function(a,b){ return a.date.localeCompare(b.date); });
 
     sortedEvents.forEach(function(ev){
-      var extraType = extraSlotType(ev);
+      var socialType = extraSlotType(ev);
+      // 飲み会だけ3人目(+1枠)が必要。カフェ会・食事会はとよかず・やまぴーも
+      // 通常の2名のメイン枠を他メンバーと取り合う(+1枠は無い)。
+      var includeExtraMembersInMain = socialType==="カフェ会" || socialType==="食事会";
       var takenToday = {};
 
-      var pool = MEMBERS.filter(function(m){ return m!=="とよかず" && m!=="やまぴー"; });
+      var pool = MEMBERS.filter(function(m){
+        if(m==="とよかず" || m==="やまぴー") return includeExtraMembersInMain;
+        return true;
+      });
       pool = pool.filter(function(m){ return cellInfo(m, ev).value !== "×"; });
       pool.sort(function(a,b){
         var pa = membersState[a].mainTotal + (wasMainForSameTypeLastMonth(a,ev)?0.5:0) + (cellInfo(a,ev).value==="△"?0.4:0);
@@ -962,8 +983,8 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
       mains.forEach(function(m){ membersState[m].mainTotal++; membersState[m].studyMain++; takenToday[m]=true; });
 
       var extraPerson = null;
-      if(extraType){
-        var epool = ["とよかず","やまぴー"].filter(function(m){ return cellInfo(m, ev).value!=="×"; });
+      if(socialType==="飲み会"){
+        var epool = ["とよかず","やまぴー"].filter(function(m){ return cellInfo(m, ev).value!=="×" && mains.indexOf(m)<0; });
         epool.sort(function(a,b){
           var pa = membersState[a].mainTotal + (wasMainForSameTypeLastMonth(a,ev)?0.5:0) + (cellInfo(a,ev).value==="△"?0.4:0);
           var pb = membersState[b].mainTotal + (wasMainForSameTypeLastMonth(b,ev)?0.5:0) + (cellInfo(b,ev).value==="△"?0.4:0);
@@ -1062,7 +1083,6 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
     var result = state.result;
     if(!result){
       box.appendChild(el("div",{class:"emptylist",text:"まだ生成されていません。④の「自動生成する」を押してください。"}));
-      document.getElementById("commitBtn").disabled = true;
       return;
     }
     var wrap = el("div",{class:"tablewrap"});
@@ -1083,17 +1103,22 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
       var mainNames = el("div",{class:"names"});
       a.main.forEach(function(m){
         var forced = a.forced && a.forced.indexOf(m)>=0;
-        mainNames.appendChild(el("span",{class:"nametag"+(forced?" extra":""), text:m+(forced?"⚠":"")}));
+        var c = (result.summary[m]&&result.summary[m].studyMain)||0;
+        mainNames.appendChild(el("span",{class:"nametag"+(forced?" extra":""), text:m+"("+c+")"+(forced?"⚠":"")}));
       });
-      if(a.extra){ mainNames.appendChild(el("span",{class:"nametag extra", text:a.extra+"（+1）"})); }
+      if(a.extra){
+        var ec = (result.summary[a.extra]&&result.summary[a.extra].studyMain)||0;
+        mainNames.appendChild(el("span",{class:"nametag extra", text:a.extra+"("+ec+")"+"（+1）"}));
+      }
       var subNames = el("div",{class:"names"});
-      a.sub.forEach(function(m){ subNames.appendChild(el("span",{class:"nametag sub", text:m})); });
+      a.sub.forEach(function(m){
+        var sc = (result.summary[m]&&result.summary[m].subTotal)||0;
+        subNames.appendChild(el("span",{class:"nametag sub", text:m+"("+sc+")"}));
+      });
       tbody.appendChild(el("tr",{},[dcell, el("td",{},[mainNames]), el("td",{},[subNames])]));
     });
     box.appendChild(wrap);
-    box.appendChild(el("div",{class:"footnote",text:"結果は提案です。③のセルの◯△×を変えて再生成すれば調整できます。"}));
-
-    document.getElementById("commitBtn").disabled = false;
+    box.appendChild(el("div",{class:"footnote",text:"結果は提案です。③のセルの◯△×を変えて再生成すれば調整できます。名前の後ろの数字は今月の合計回数です。"}));
   }
 
   function renderWarnings(){
@@ -1145,14 +1170,42 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
     if(db) db.doc("results/latest").set(result);
     render();
   });
-  document.getElementById("commitBtn").addEventListener("click", function(){
+  function buildResultCopyText(){
     var result = state.result;
-    if(!result || !db) return;
+    var cfg = state.config || defaultConfig();
+    var lines = [];
+    lines.push("【"+(cfg.month||"")+" シフト】");
+    result.assignments.forEach(function(a){
+      lines.push("");
+      lines.push(a.date+"（"+a.weekday+"）"+(a.types||[]).join("・"));
+      var mainParts = a.main.map(function(m){
+        var c = (result.summary[m]&&result.summary[m].studyMain)||0;
+        return m+"("+c+")";
+      });
+      if(a.extra){
+        var ec = (result.summary[a.extra]&&result.summary[a.extra].studyMain)||0;
+        mainParts.push(a.extra+"+1("+ec+")");
+      }
+      lines.push("メイン："+mainParts.join("・"));
+      if(a.sub && a.sub.length){
+        var subParts = a.sub.map(function(m){
+          var c = (result.summary[m]&&result.summary[m].subTotal)||0;
+          return m+"("+c+")";
+        });
+        lines.push("サブ："+subParts.join("・"));
+      }
+    });
+    return lines.join("\n");
+  }
+
+  // コピーを「確定」操作を兼ねる。LINE等に送る＝この月の内容で決定、という
+  // 実際の使い方に合わせ、コピーと同時に来月判定用の情報も記録する。
+  function commitCurrentResult(result){
     var month = (state.config&&state.config.month)||"";
     if(result.clcMain && result.clcMain.length>0){
       var clcSeed = { lastMain: result.clcMain, month: month };
       state.clcHistory = clcSeed;
-      db.doc("history/clc").set(clcSeed);
+      if(db) db.doc("history/clc").set(clcSeed);
     }
     if(month){
       var histEntry = {
@@ -1162,10 +1215,48 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
         })
       };
       state.resultsHistory[month] = histEntry;
-      db.collection("resultsHistory").doc(month).set(histEntry);
+      if(db) db.collection("resultsHistory").doc(month).set(histEntry);
     }
     render();
-    document.getElementById("commitBtn").disabled = true;
+  }
+
+  document.getElementById("copyBtn").addEventListener("click", function(){
+    var feedback = document.getElementById("copyFeedback");
+    function showFeedback(kind, msg){ feedback.textContent = msg; feedback.className = "import-alert show "+kind; }
+    var result = state.result;
+    if(!result){ showFeedback("err","先に「自動生成する」でシフトを作成してください。"); return; }
+    if(!db){ showFeedback("err","共有保存の準備中です。数秒待ってからもう一度お試しください。"); return; }
+    var text = buildResultCopyText();
+
+    function showCopyFallback(){
+      var ta = document.getElementById("copyFallbackTa");
+      if(!ta){
+        ta = document.createElement("textarea");
+        ta.id = "copyFallbackTa";
+        ta.readOnly = true;
+        ta.style.marginTop = "8px";
+        ta.style.minHeight = "160px";
+        feedback.insertAdjacentElement("afterend", ta);
+      }
+      ta.value = text;
+      ta.focus();
+      ta.select();
+    }
+
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){
+        showFeedback("ok","✔ コピーしました。LINE等に貼り付けてください（来月の判定に必要な情報も記録しました）。");
+        commitCurrentResult(result);
+      }).catch(function(){
+        showFeedback("ok","自動コピーできなかったため、下のテキストを選択してコピーしてください（来月の判定に必要な情報は記録済みです）。");
+        showCopyFallback();
+        commitCurrentResult(result);
+      });
+    } else {
+      showFeedback("ok","自動コピーできなかったため、下のテキストを選択してコピーしてください（来月の判定に必要な情報は記録済みです）。");
+      showCopyFallback();
+      commitCurrentResult(result);
+    }
   });
 
   function render(){
