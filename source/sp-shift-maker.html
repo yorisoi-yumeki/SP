@@ -252,6 +252,23 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
   var seededResultsHistory = false;
   var bulkImportFeedback = null; // {kind:"ok"|"err", msg:string} | null
 
+  // 8月の実績(前々月参照。ユーザーから送付された実データをそのまま記録)
+  var SEED_RESULTS_HISTORY_2026_08 = {
+    month: "2026-08",
+    note: "実績(手動記録)",
+    assignments: [
+      {date:"2026-08-01", weekday:"土", types:["Enトレ1","Lmtg","CLC"], main:["だいち","りん"], extra:null, sub:["まぎー","こばぴー"]},
+      {date:"2026-08-02", weekday:"日", types:["健セミ","フェス"], main:["まぎー","つよぽん"], extra:null, sub:["ねぎ","りん"]},
+      {date:"2026-08-08", weekday:"土", types:["Enトレ2","代説","社カレ"], main:["つよぽん","ねぎ"], extra:null, sub:["よう","こばぴー"]},
+      {date:"2026-08-09", weekday:"日", types:["中間mtg","コミュ1","WS"], main:["まぎー","こばぴー"], extra:null, sub:["だいち","つよぽん"]},
+      {date:"2026-08-15", weekday:"土", types:["代説","コミュ2","2nd"], main:["だいち","よう"], extra:null, sub:["ねぎ","まぎー"]},
+      {date:"2026-08-22", weekday:"土", types:["カフェ会"], main:["りん","やまぴー"], extra:null, sub:[]},
+      {date:"2026-08-22", weekday:"土", types:["飲み会"], main:["まぎー","やまぴー","とよかず"], extra:null, sub:[]},
+      {date:"2026-08-23", weekday:"日", types:["代トレ","ビジ基礎","メンタル"], main:["よう","こばぴー"], extra:null, sub:["だいち","りん"]},
+      {date:"2026-08-28", weekday:"金", types:["CLC Final"], main:["とよかず","ねぎ"], extra:null, sub:[]}
+    ]
+  };
+
   // 9月の実績(前月参照の初期値。付録Bの実データと一致)
   var SEED_RESULTS_HISTORY_2026_09 = {
     month: "2026-09",
@@ -513,8 +530,11 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
     subscribeWithRetry("過去のシフト", function(){ return db.collection("resultsHistory"); }, function(snap){
       if(snap.empty && !seededResultsHistory){
         seededResultsHistory = true;
+        db.collection("resultsHistory").doc(SEED_RESULTS_HISTORY_2026_08.month).set(SEED_RESULTS_HISTORY_2026_08);
         db.collection("resultsHistory").doc(SEED_RESULTS_HISTORY_2026_09.month).set(SEED_RESULTS_HISTORY_2026_09);
-        var h = {}; h[SEED_RESULTS_HISTORY_2026_09.month] = SEED_RESULTS_HISTORY_2026_09;
+        var h = {};
+        h[SEED_RESULTS_HISTORY_2026_08.month] = SEED_RESULTS_HISTORY_2026_08;
+        h[SEED_RESULTS_HISTORY_2026_09.month] = SEED_RESULTS_HISTORY_2026_09;
         state.resultsHistory = h;
       } else {
         var hist = {};
