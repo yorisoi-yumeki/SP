@@ -1,0 +1,1205 @@
+<title>SP軍団シフト</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#F5F6F1; --surface:#FFFFFF; --surface-2:#ECEFE7; --border:#DBE0D2;
+  --text:#23261E; --text-2:#5E6552; --text-3:#96A084;
+  --accent:#2F5D50; --accent-ink:#FFFFFF; --accent-soft:#DCE9E2; --accent-soft-ink:#1D4438;
+  --danger:#9C3B2C; --danger-soft:#F6DED7; --danger-ink:#6E2A1E;
+  --warn:#93661E; --warn-soft:#F1E6CC; --warn-ink:#5F4212;
+  --track:#E3E6DC;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#171A14; --surface:#1F231A; --surface-2:#262B20; --border:#333A2B;
+    --text:#ECEFE4; --text-2:#A9B097; --text-3:#767D67;
+    --accent:#7FC8AC; --accent-ink:#0E211B; --accent-soft:#1E3931; --accent-soft-ink:#BEE9D8;
+    --danger:#E4917E; --danger-soft:#3E2019; --danger-ink:#F5C0B0;
+    --warn:#DDB35B; --warn-soft:#3B2F16; --warn-ink:#F1D492;
+    --track:#2B3123;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#171A14; --surface:#1F231A; --surface-2:#262B20; --border:#333A2B;
+  --text:#ECEFE4; --text-2:#A9B097; --text-3:#767D67;
+  --accent:#7FC8AC; --accent-ink:#0E211B; --accent-soft:#1E3931; --accent-soft-ink:#BEE9D8;
+  --danger:#E4917E; --danger-soft:#3E2019; --danger-ink:#F5C0B0;
+  --warn:#DDB35B; --warn-soft:#3B2F16; --warn-ink:#F1D492;
+  --track:#2B3123;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:"Noto Sans JP","Hiragino Sans",sans-serif;
+  padding:20px 16px 48px; font-size:14px; line-height:1.6;
+  font-variant-numeric:tabular-nums;
+}
+.wrap{max-width:1280px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+.layout{display:grid;grid-template-columns:250px 1fr;gap:20px;align-items:start}
+.main-col{display:flex;flex-direction:column;gap:20px;min-width:0}
+.rules-panel{position:sticky;top:calc(env(safe-area-inset-top,0px) + 14px);background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px}
+.rules-panel h2{font-size:13px;font-weight:900;margin:0 0 10px}
+.rules-list{display:flex;flex-direction:column;gap:10px;list-style:none;margin:0;padding:0}
+.rules-list li{font-size:11.5px;line-height:1.55;color:var(--text-2);padding-left:14px;position:relative}
+.rules-list li::before{content:"";position:absolute;left:0;top:6px;width:6px;height:6px;border-radius:2px;background:var(--accent)}
+.rules-list b{color:var(--text);font-weight:700}
+.rules-legend{margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:11px;color:var(--text-2);display:flex;flex-direction:column;gap:4px}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+@media (max-width:880px){
+  .layout{grid-template-columns:1fr}
+  .rules-panel{position:static;order:2}
+  .main-col{order:1}
+  .compare-grid{grid-template-columns:1fr}
+}
+details.disclosure{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:0}
+details.disclosure[open]{padding-bottom:6px}
+details.disclosure>summary{list-style:none;cursor:pointer;padding:18px 18px 4px;display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+details.disclosure>summary::-webkit-details-marker{display:none}
+details.disclosure>summary .stitle{font-size:14.5px;font-weight:700;display:flex;align-items:center;gap:8px}
+details.disclosure>summary .stitle::before{content:"▸";display:inline-block;color:var(--text-3);transition:transform .15s ease;font-size:11px}
+details.disclosure[open]>summary .stitle::before{transform:rotate(90deg)}
+details.disclosure>summary .ssum{font-size:11px;color:var(--text-3);font-weight:500}
+details.disclosure>.disclosure-body{padding:0 18px 16px}
+h1{font-family:"Zen Kaku Gothic New",sans-serif;font-size:19px;font-weight:900;margin:0 0 2px;text-wrap:balance}
+.lead{color:var(--text-2);font-size:12.5px;margin:0}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 18px 20px}
+.card h2{font-family:"Zen Kaku Gothic New",sans-serif;font-size:14.5px;font-weight:700;margin:0 0 4px;display:flex;align-items:center;gap:8px}
+.card .desc{color:var(--text-2);font-size:12px;margin:0 0 14px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.field{display:flex;flex-direction:column;gap:4px;min-width:120px}
+.field label{font-size:11px;color:var(--text-2)}
+input[type=text],input[type=date],input[type=number],select,textarea{
+  font-family:inherit;font-size:13px;padding:7px 9px;border-radius:8px;
+  border:1px solid var(--border);background:var(--surface-2);color:var(--text);
+}
+input[type=number]{width:64px}
+button{
+  font-family:inherit;font-size:12.5px;font-weight:700;border:none;border-radius:9px;
+  padding:8px 14px;cursor:pointer;background:var(--accent);color:var(--accent-ink);
+}
+button.secondary{background:var(--surface-2);color:var(--text);border:1px solid var(--border)}
+button.ghost{background:transparent;color:var(--text-2);border:1px solid var(--border);padding:5px 9px;font-weight:500}
+button:disabled{opacity:.45;cursor:not-allowed}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:999px}
+.badge.accent{background:var(--accent-soft);color:var(--accent-soft-ink)}
+.pillset{display:flex;flex-wrap:wrap;gap:6px}
+.pill{
+  font-size:12px;padding:5px 10px;border-radius:999px;border:1px solid var(--border);
+  background:var(--surface-2);color:var(--text-2);cursor:pointer;user-select:none;
+}
+.pill.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablewrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px}
+table{border-collapse:collapse;width:100%;min-width:640px}
+th,td{padding:8px 9px;border-bottom:1px solid var(--border);text-align:center;font-size:12.5px;white-space:nowrap}
+thead th{background:var(--surface-2);color:var(--text-2);font-weight:700;position:sticky;top:0}
+tbody tr:last-child td{border-bottom:none}
+td.datecell,th.datecell{text-align:left;min-width:190px}
+.datecell .d{font-weight:700}
+.datecell .types{color:var(--text-2);font-size:11px;margin-top:2px}
+.datecell .tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.tag{font-size:10px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:1px 6px;color:var(--text-2)}
+select.cell{width:52px;padding:4px 2px;text-align:center;font-weight:700}
+select.cell.warn{background:var(--danger-soft);color:var(--danger-ink);border-color:var(--danger)}
+select.cell.prevmain{border-color:var(--warn);box-shadow:inset 0 0 0 1px var(--warn)}
+.na{color:var(--text-3)}
+.eventrow-actions{display:flex;gap:4px;justify-content:flex-start}
+.emptylist{color:var(--text-3);font-size:12px;padding:10px 2px}
+.summary{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.tile{border:1px solid var(--border);border-radius:11px;padding:10px 12px;background:var(--surface-2)}
+.tile .name{font-weight:700;font-size:13px;display:flex;justify-content:space-between;align-items:center}
+.tile .total{font-family:"Zen Kaku Gothic New",sans-serif;font-size:15px;font-weight:900}
+.tile .total.warn{color:var(--warn)}
+.meter{height:6px;border-radius:4px;background:var(--track);margin:7px 0 6px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--accent);border-radius:4px}
+.tile .breakdown{display:flex;justify-content:space-between;font-size:10.5px;color:var(--text-2)}
+.warnlist{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.warnitem{background:var(--warn-soft);color:var(--warn-ink);border-radius:9px;padding:7px 10px;font-size:12px}
+.result-table td{text-align:left}
+.names{display:flex;flex-wrap:wrap;gap:5px}
+.nametag{background:var(--accent-soft);color:var(--accent-soft-ink);border-radius:7px;padding:2px 8px;font-size:12px;font-weight:700}
+.nametag.extra{background:var(--warn-soft);color:var(--warn-ink)}
+.nametag.sub{background:var(--surface-2);color:var(--text-2);border:1px solid var(--border);font-weight:500}
+.footnote{font-size:11px;color:var(--text-3);margin-top:10px;line-height:1.7}
+.import-alert{margin-top:10px;padding:10px 14px;border-radius:8px;font-size:13.5px;font-weight:700;line-height:1.6;display:none}
+.import-alert.show{display:block}
+.import-alert.ok{background:var(--accent-soft);color:var(--accent-soft-ink);border:1px solid var(--accent)}
+.import-alert.err{background:var(--danger-soft);color:var(--danger-ink);border:1px solid var(--danger)}
+.banner{background:var(--warn-soft);color:var(--warn-ink);border-radius:10px;padding:9px 12px;font-size:12.5px}
+.banner.danger{background:var(--danger-soft);color:var(--danger-ink)}
+.stack{display:flex;flex-direction:column;gap:6px}
+textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius:8px;min-height:90px}
+@media (max-width:520px){
+  .field{min-width:100%}
+  select.cell{width:44px}
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>SP軍団シフトメーカー</h1>
+    <p class="lead">勉強会シフトの可否入力 → ルールに基づく自動割当。リンクを開いた全員で同じ表を編集できます。</p>
+  </header>
+
+  <div id="dbBanner"></div>
+
+  <div class="layout">
+    <aside class="rules-panel">
+      <h2>シフトのルール(常時表示)</h2>
+      <ul class="rules-list">
+        <li><b>よう・つよぽん</b>：メインは同日重複不可(サブも可能なら回避)</li>
+        <li><b>まぎー・こばぴー</b>：2ndはメイン不可(サブも可能なら回避／不動産所持者のため)</li>
+        <li><b>とよかず・やまぴー</b>：勉強会は「飲み会・カフェ会・食事会が単体開催」の日の＋1枠のみ。その分Mシフトに多く入る</li>
+        <li><b>CLC</b>：メインは2ヶ月連続不可(前月実績から自動判定)</li>
+        <li><b>Enトレ2</b>：その月の対象者はメイン不可</li>
+        <li><b>カフェ会</b>：メインはM20チャレンジ中の人のみ</li>
+        <li><b>CLC Final</b>：8/11/2/5月…に食事会が改名したもの。食事会と同ルール(CLCの連続禁止とは無関係)</li>
+        <li><b>前月同種別メイン</b>：できれば今月は別の人を優先(必須ではない)</li>
+        <li><b>合計バランス</b>：勉強会メイン＋M入力数を9名で均等化／勉強会サブは別枠で均等化</li>
+      </ul>
+      <div class="rules-legend">
+        <div>◯＝入れる　／　△＝できれば避けたい　／　×＝不可</div>
+        <div>×は自動生成で除外、△は優先度を下げて割当</div>
+      </div>
+    </aside>
+
+    <div class="main-col">
+      <details class="disclosure" id="configCard">
+        <summary><span class="stitle">①月の設定</span><span class="ssum" id="configSummary"></span></summary>
+        <div class="disclosure-body">
+          <p class="desc">月ごとに変わる情報を入力してください。CLCの前月メインは自動で引き継がれます。</p>
+          <div id="configBody"></div>
+        </div>
+      </details>
+
+      <section class="card" id="bulkImportCard">
+        <h2>②勉強会日程を貼り付けて一括登録</h2>
+        <p class="desc">月間の勉強会予定をそのまま貼り付ければ、①の対象月として日程を一括登録します（メイン・サブの人名は無視されます）。</p>
+        <div id="bulkImportForm" class="stack"></div>
+      </section>
+
+      <details class="disclosure" id="eventsCard">
+        <summary><span class="stitle">日程一覧・個別追加/削除</span><span class="ssum" id="eventsSummary"></span></summary>
+        <div class="disclosure-body">
+          <p class="desc">1件ずつ追加・削除する場合はこちら（複数種別は読点「、」区切り）。単体開催の飲み会/カフェ会/食事会だけ、とよかず・やまぴーが対象になります。「削除」は完全消去せず保管（archived）フラグを立てるだけです。</p>
+          <div id="eventForm"></div>
+          <div class="tablewrap" style="margin-top:12px">
+            <table id="eventsTable"><thead></thead><tbody></tbody></table>
+          </div>
+        </div>
+      </details>
+
+      <div class="compare-grid">
+        <section class="card" id="prevMonthCard">
+          <h2>前月のシフト(参考)</h2>
+          <p class="desc" id="prevMonthDesc"></p>
+          <div class="tablewrap">
+            <table class="result-table" id="prevMonthTable"><thead></thead><tbody></tbody></table>
+          </div>
+        </section>
+
+        <section class="card" id="currentMonthCard">
+          <h2>今月のシフト</h2>
+          <p class="desc">メイン合計（勉強会+M）とサブ回数（勉強会のみ）が均等になるよう自動で割り当てます。「確定」を押すと、今回CLCのメインを担当した人を記録します（①のルール「CLC 2ヶ月連続不可」を翌月も自動判定するために必要な記録です）。</p>
+          <div class="row">
+            <button id="genBtn">自動生成する</button>
+            <button id="commitBtn" class="secondary" disabled>この結果を確定</button>
+          </div>
+          <div id="warnBox"></div>
+          <div id="resultBody"></div>
+        </section>
+      </div>
+
+      <details class="disclosure" id="availCard" open>
+        <summary><span class="stitle">③可否表（◯入れる / △出来れば避けたい / ×不可）</span><span class="ssum" id="availSummary"></span></summary>
+        <div class="disclosure-body">
+          <p class="desc">ルール上入れない日は自動で×が入ります。本人の希望で変更できますが、×から変更すると警告色で表示されます。黄枠は「前月、同じ種別でメインだった人」の目印です（できれば今回は別の人を優先／必須ではありません）。左のルール一覧も参照してください。</p>
+          <div class="tablewrap">
+            <table id="availTable"><thead></thead><tbody></tbody></table>
+          </div>
+        </div>
+      </details>
+
+      <section class="card" id="summaryCard">
+        <h2>バランス確認</h2>
+        <p class="desc">合計＝勉強会メイン＋M入力数。サブは勉強会のみで別集計です。</p>
+        <div class="summary" id="summaryBody"></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var MEMBERS = ["だいち","りん","ねぎ","とよかず","やまぴー","まぎー","こばぴー","よう","つよぽん"];
+  var RESTRICTED_SOCIAL = ["飲み会","カフェ会","食事会"];
+  // 「CLC Final」は3ヶ月ごと(8月/11月/2月/5月…)に食事会が名前を変えたもの。
+  // ルール上は食事会と同義に扱う(CLCメインの2ヶ月連続ルールとは無関係)。
+  var TYPE_ALIASES = { "CLC Final":"食事会" };
+  function normType(t){ return TYPE_ALIASES[t] || t; }
+  function normTypes(types){ return (types||[]).map(normType); }
+  var PAIR_NOTE = {
+    "とよかず":"とよかず・やまぴー：単体開催の飲み会/カフェ会/食事会のみ対象",
+    "やまぴー":"とよかず・やまぴー：単体開催の飲み会/カフェ会/食事会のみ対象",
+    "まぎー":"まぎー・こばぴー：2ndはメイン不可（サブも可能なら回避）",
+    "こばぴー":"まぎー・こばぴー：2ndはメイン不可（サブも可能なら回避）",
+    "よう":"よう・つよぽん：メインは同日重複不可",
+    "つよぽん":"よう・つよぽん：メインは同日重複不可"
+  };
+
+  var db = null;
+  var state = {
+    config: null,
+    clcHistory: null,
+    events: [],
+    availability: {},
+    result: null,
+    resultsHistory: {}
+  };
+  var seededEvents = false;
+  var seededConfig = false;
+  var seededHistory = false;
+  var seededResultsHistory = false;
+  var bulkImportFeedback = null; // {kind:"ok"|"err", msg:string} | null
+
+  // 9月の実績(前月参照の初期値。付録Bの実データと一致)
+  var SEED_RESULTS_HISTORY_2026_09 = {
+    month: "2026-09",
+    note: "実績(手動記録)",
+    assignments: [
+      {date:"2026-09-05", weekday:"土", types:["Lmtg","Enトレ1","CLC"], main:["まぎー","こばぴー"], extra:null, sub:["ねぎ","りん"]},
+      {date:"2026-09-06", weekday:"日", types:["健セミ","フェス"], main:["よう","りん"], extra:null, sub:["だいち","まぎー"]},
+      {date:"2026-09-13", weekday:"日", types:["Enトレ2","代説","社カレ"], main:["りん","つよぽん"], extra:null, sub:["だいち","こばぴー"]},
+      {date:"2026-09-20", weekday:"日", types:["中間mtg","コミュ1","WS"], main:["こばぴー","ねぎ"], extra:null, sub:["よう","りん"]},
+      {date:"2026-09-22", weekday:"火", types:["ビジ基礎","代説","2nd"], main:["だいち","りん"], extra:null, sub:["ねぎ","つよぽん"]},
+      {date:"2026-09-23", weekday:"水", types:["代トレ","コミュ2nd","飲み会"], main:["まぎー","よう"], extra:"やまぴー", sub:["だいち","こばぴー"]},
+      {date:"2026-09-26", weekday:"土", types:["メンタル","カフェ会"], main:["つよぽん","ねぎ"], extra:null, sub:["まぎー","よう"]},
+      {date:"2026-09-27", weekday:"日", types:["Enトレ1","代説"], main:["だいち","よう"], extra:null, sub:["まぎー","つよぽん"]},
+      {date:"2026-09-28", weekday:"月", types:["食事会"], main:["とよかず","ねぎ"], extra:null, sub:[]}
+    ]
+  };
+
+  var SEED_EVENTS = [
+    {id:"2026-10-04", date:"2026-10-04", weekday:"日", holiday:false, tentative:false, types:["Lmtg","CLC","フェス"], venue:"荏原"},
+    {id:"2026-10-08", date:"2026-10-08", weekday:"木", holiday:false, tentative:false, types:["ビジ基礎"], venue:"荏原"},
+    {id:"2026-10-10", date:"2026-10-10", weekday:"土", holiday:false, tentative:false, types:["代説","社カレ"], venue:"荏原"},
+    {id:"2026-10-11", date:"2026-10-11", weekday:"日", holiday:false, tentative:false, types:["Enトレ2","健セミ"], venue:"荏原"},
+    {id:"2026-10-12", date:"2026-10-12", weekday:"月", holiday:true, tentative:false, types:["中間mtg","コミュ1","WS"], venue:"荏原"},
+    {id:"2026-10-17", date:"2026-10-17", weekday:"土", holiday:false, tentative:false, types:["2nd","コミュ2nd","メンタル"], venue:"神保町"},
+    {id:"2026-10-19", date:"2026-10-19", weekday:"月", holiday:false, tentative:false, types:["代トレ"], venue:"荏原"},
+    {id:"2026-10-24", date:"2026-10-24", weekday:"土", holiday:false, tentative:false, types:["飲み会"], venue:"中目黒"},
+    {id:"2026-10-26", date:"2026-10-26", weekday:"月", holiday:false, tentative:false, types:["カフェ会"], venue:"荏原"},
+    {id:"2026-10-28", date:"2026-10-28", weekday:"水", holiday:false, tentative:true, types:["食事会"], venue:"荏原"}
+  ];
+
+  // 付録Bの実データ(state/config)。M20進捗の解析結果(m20Source)は保存済みだが、
+  // 判定リスト(m20List)への反映ボタンはまだ押されていない状態を再現する。
+  var SEED_CONFIG = {
+    month:"2026-10",
+    mCounts: { "こばぴー":0, "だいち":0, "つよぽん":0, "とよかず":0, "ねぎ":0, "まぎー":0, "やまぴー":0, "よう":0, "りん":0 },
+    entre2Target: [],
+    m20List: [],
+    m20Source: {
+      appliedAt: "2026-09-22T12:01:14.064Z",
+      parsed: { "こばぴー":22, "だいち":25, "つよぽん":18, "とよかず":13, "ねぎ":16, "まぎー":21, "やまぴー":21, "よう":22, "りん":12 },
+      raw: "\n🏋🏻8月M SP進捗  20の期日 🏋🏻\n\nこばぴー (22/21/32)\nだいち     (25/30/30)\nつよぽん  (18/15/20)\nとよかず  (13/16/20)\nねぎ　　  (16/19/20)\nまぎー　  (21/22/20)\nやまぴー  (21/22/36)\nよう         (22/20/25)\nりん   　  (12/14/20)"
+    }
+  };
+
+  function defaultConfig(){
+    var mCounts = {};
+    MEMBERS.forEach(function(m){ mCounts[m]=0; });
+    return { month:"2026-10", mCounts:mCounts, entre2Target:[], m20List:[] };
+  }
+
+  function el(tag, attrs, children){
+    var e = document.createElement(tag);
+    attrs = attrs || {};
+    Object.keys(attrs).forEach(function(k){
+      if(k==="class") e.className = attrs[k];
+      else if(k==="text") e.textContent = attrs[k];
+      else if(k.indexOf("on")===0) e.addEventListener(k.slice(2).toLowerCase(), attrs[k]);
+      else e.setAttribute(k, attrs[k]);
+    });
+    (children||[]).forEach(function(c){ if(c) e.appendChild(c); });
+    return e;
+  }
+
+  function ruleDefault(member, ev){
+    var types = normTypes(ev.types);
+    var isSocialOnly = types.length===1 && RESTRICTED_SOCIAL.indexOf(types[0])>=0;
+    var hasCLC = types.indexOf("CLC")>=0;
+    var has2nd = types.indexOf("2nd")>=0;
+    var hasEntre2 = types.indexOf("Enトレ2")>=0;
+    var hasCafe = types.indexOf("カフェ会")>=0;
+    var cfg = state.config || defaultConfig();
+    var m20List = cfg.m20List || [];
+    var entre2Target = cfg.entre2Target || [];
+    var clcPrevMain = (state.clcHistory && state.clcHistory.lastMain) || [];
+    var socialType = isSocialOnly ? types[0] : (function(){
+      if(types.length<=1) return null;
+      var social = types.filter(function(t){ return RESTRICTED_SOCIAL.indexOf(t)>=0; });
+      return social.length===1 ? social[0] : null;
+    })();
+
+    if(member==="とよかず" || member==="やまぴー"){
+      if(!socialType) return {value:"×", reason:"複合日のため対象外（単体開催の飲み会/カフェ会/食事会のみ、＋1枠）"};
+      if(socialType==="カフェ会" && m20List.length>0 && m20List.indexOf(member)<0) return {value:"×", reason:"カフェ会はM20チャレンジ中の人のみ"};
+      return {value:"◯", reason:"＋1枠（"+socialType+"）対象"};
+    }
+    if(hasCLC && clcPrevMain.indexOf(member)>=0) return {value:"×", reason:"前月CLCメイン担当のため2ヶ月連続不可"};
+    if(has2nd && (member==="まぎー"||member==="こばぴー")) return {value:"×", reason:"2ndはメイン不可"};
+    if(hasEntre2 && entre2Target.indexOf(member)>=0) return {value:"×", reason:"Enトレ2対象者のためメイン不可"};
+    if(hasCafe && m20List.length>0 && m20List.indexOf(member)<0) return {value:"×", reason:"カフェ会はM20チャレンジ中の人のみ"};
+    return {value:"◯", reason:null};
+  }
+
+  function cellInfo(member, ev){
+    var rd = ruleDefault(member, ev);
+    var av = state.availability[ev.id];
+    var override = av && av.values ? av.values[member] : null;
+    var value = override || rd.value;
+    var warn = !!override && override!=="×" && rd.value==="×";
+    var prevMain = wasMainForSameTypeLastMonth(member, ev);
+    return { value:value, override:!!override, ruleDefault:rd, warn:warn, prevMain:prevMain };
+  }
+
+  // 前月、同じ種別でメインだった人はできれば今月は避けたい(メインは当日その勉強会に出られないため)
+  function prevMainByTypeMap(){
+    var cfg = state.config || defaultConfig();
+    var key = prevMonthKey(cfg.month);
+    var hist = key ? state.resultsHistory[key] : null;
+    var map = {};
+    if(!hist || !hist.assignments) return map;
+    hist.assignments.forEach(function(a){
+      var people = (a.main||[]).concat(a.extra ? [a.extra] : []);
+      normTypes(a.types).forEach(function(t){
+        map[t] = map[t] || {};
+        people.forEach(function(p){ map[t][p] = true; });
+      });
+    });
+    return map;
+  }
+  function wasMainForSameTypeLastMonth(member, ev){
+    var map = prevMainByTypeMap();
+    return normTypes(ev.types).some(function(t){ return map[t] && map[t][member]; });
+  }
+
+  function extraSlotType(ev){
+    var types = normTypes(ev.types);
+    if(types.length===1 && RESTRICTED_SOCIAL.indexOf(types[0])>=0) return types[0];
+    var social = types.filter(function(t){ return RESTRICTED_SOCIAL.indexOf(t)>=0; });
+    return social.length===1 ? social[0] : null;
+  }
+
+  // ---------- DB wiring ----------
+  // 保存/読み込みのPromiseが失敗した際、どこにも.catch()を付け忘れていても
+  // ここで拾ってエラーを画面上に出す安全網。
+  var globalWriteErrorShown = false;
+  window.addEventListener("unhandledrejection", function(ev){
+    if(globalWriteErrorShown) return;
+    globalWriteErrorShown = true;
+    var box = document.getElementById("dbBanner");
+    if(!box) return;
+    var detail = "";
+    try{
+      var reason = ev.reason;
+      detail = reason && (reason.message || reason.code) ? String(reason.message || reason.code) : String(reason);
+    }catch(e){ detail = "(詳細不明)"; }
+    box.appendChild(el("div",{class:"banner danger",style:"margin-top:8px"},[document.createTextNode(
+      "データの保存または読み込みで問題が発生しました。この画面のメッセージをそのまま共有してください：" + detail
+    )]));
+  });
+
+  // 旧版の不具合(書き込みは成功するのに画面が更新されない)の直接原因はここにあった：
+  // onSnapshotのerrorコールバックが空関数 function(){} だったため、購読が
+  // 致命的エラー(DbError)で停止しても、誰にも気づけないまま止まり続けていた
+  // (db.d.tsの仕様上、onSnapshotの購読は一度エラーになると自動復活しない)。
+  // ここでは (1) エラーを画面バナーに出す (2) 自動的に再購読する、の2点を必ず行う。
+  var connIssues = {}; // label -> true (現在エラー中のラベル一覧)
+  function renderConnBanner(){
+    var box = document.getElementById("connBanner");
+    if(!box) return;
+    var labels = Object.keys(connIssues).filter(function(k){ return connIssues[k]; });
+    box.innerHTML = "";
+    if(labels.length===0) return;
+    box.appendChild(el("div",{class:"banner danger"},[document.createTextNode(
+      "共有データの自動更新が一時的に切断されました（"+labels.join("、")+"）。自動で再接続を試みています。数十秒待っても直らない場合はページを再読み込みしてください。"
+    )]));
+  }
+  function subscribeWithRetry(label, getRef, onNext){
+    var retryDelay = 1500;
+    var timer = null;
+    function start(){
+      getRef().onSnapshot(function(snap){
+        if(connIssues[label]){ connIssues[label] = false; renderConnBanner(); }
+        retryDelay = 1500;
+        onNext(snap);
+      }, function(err){
+        console.error("["+label+"] onSnapshot error", err);
+        connIssues[label] = true;
+        renderConnBanner();
+        if(timer) clearTimeout(timer);
+        timer = setTimeout(start, retryDelay);
+        retryDelay = Math.min(retryDelay*2, 20000);
+      });
+    }
+    start();
+  }
+
+  function init(){
+    if(window.claude && window.claude.use){
+      window.claude.use("db").then(function(handle){
+        db = handle;
+        if(!db){ renderNoDb(); render(); return; }
+        subscribeAll();
+      }).catch(function(){ renderNoDb(); render(); });
+    } else {
+      renderNoDb();
+    }
+    render();
+  }
+
+  function renderNoDb(){
+    var box = document.getElementById("dbBanner");
+    box.innerHTML = "";
+    box.appendChild(el("div",{class:"banner"},[document.createTextNode(
+      "この画面では共有保存が使えないため、閲覧のみになります。Claudeで発行されたリンクから開いてください。"
+    )]));
+  }
+
+  function subscribeAll(){
+    var banner = document.getElementById("dbBanner");
+    if(banner && !document.getElementById("connBanner")){
+      banner.appendChild(el("div",{id:"connBanner"}));
+    }
+
+    subscribeWithRetry("設定", function(){ return db.doc("state/config"); }, function(snap){
+      if(snap.exists){ state.config = snap.data(); }
+      else if(!seededConfig){ seededConfig = true; db.doc("state/config").set(SEED_CONFIG); state.config = SEED_CONFIG; }
+      render();
+    });
+
+    subscribeWithRetry("CLC履歴", function(){ return db.doc("history/clc"); }, function(snap){
+      if(snap.exists){ state.clcHistory = snap.data(); }
+      else if(!seededHistory){ seededHistory = true; var seed = {lastMain:["まぎー","こばぴー"], month:"2026-09"}; db.doc("history/clc").set(seed); state.clcHistory = seed; }
+      render();
+    });
+
+    subscribeWithRetry("日程一覧", function(){ return db.collection("events").orderBy("date","asc"); }, function(snap){
+      if(snap.empty && !seededEvents){
+        seededEvents = true;
+        SEED_EVENTS.forEach(function(ev){
+          db.collection("events").doc(ev.id).set(ev);
+          db.collection("availability").doc(ev.id).set({values:{}});
+        });
+        state.events = SEED_EVENTS.slice();
+      } else {
+        state.events = snap.docs.map(function(d){ var data=d.data(); data.id=d.id; return data; }).filter(function(e){ return !e.archived; });
+      }
+      render();
+    });
+
+    subscribeWithRetry("可否表", function(){ return db.collection("availability"); }, function(snap){
+      var av = {};
+      snap.docs.forEach(function(d){ av[d.id] = d.data(); });
+      state.availability = av;
+      render();
+    });
+
+    subscribeWithRetry("生成結果", function(){ return db.doc("results/latest"); }, function(snap){
+      state.result = snap.exists ? snap.data() : null;
+      render();
+    });
+
+    subscribeWithRetry("過去のシフト", function(){ return db.collection("resultsHistory"); }, function(snap){
+      if(snap.empty && !seededResultsHistory){
+        seededResultsHistory = true;
+        db.collection("resultsHistory").doc(SEED_RESULTS_HISTORY_2026_09.month).set(SEED_RESULTS_HISTORY_2026_09);
+        var h = {}; h[SEED_RESULTS_HISTORY_2026_09.month] = SEED_RESULTS_HISTORY_2026_09;
+        state.resultsHistory = h;
+      } else {
+        var hist = {};
+        snap.docs.forEach(function(d){ hist[d.id] = d.data(); });
+        state.resultsHistory = hist;
+      }
+      render();
+    });
+  }
+
+  function prevMonthKey(monthStr){
+    var m = /^(\d{4})-(\d{2})$/.exec(monthStr||"");
+    if(!m) return null;
+    var y = Number(m[1]), mo = Number(m[2]) - 1; // 0-indexed, subtract 1 more for prev month
+    mo = mo - 1;
+    if(mo < 0){ mo = 11; y = y - 1; }
+    return y + "-" + String(mo+1).padStart(2,"0");
+  }
+
+  var attemptedAvailInit = {};
+  function ensureAvailDoc(id){
+    if(!db) return;
+    if(state.availability[id] || attemptedAvailInit[id]) return;
+    attemptedAvailInit[id] = true;
+    db.collection("availability").doc(id).get().then(function(snap){
+      if(!snap.exists){ db.collection("availability").doc(id).set({values:{}}); }
+    });
+  }
+
+  // 書き込み成功をonSnapshotの再購読だけに頼らず、その場でローカルstateを
+  // 更新してrender()する(楽観的更新)。オフラインや購読の遅延があっても、
+  // 自分の操作は必ず自分の画面にすぐ反映される。
+  function updateConfig(patch){
+    if(!db) return;
+    state.config = Object.assign({}, state.config || defaultConfig(), patch);
+    render();
+    db.doc("state/config").update(patch).catch(function(){ return db.doc("state/config").set(state.config); });
+  }
+
+  // ---------- render: config ----------
+  function renderConfig(){
+    var box = document.getElementById("configBody");
+    box.innerHTML = "";
+    var cfg = state.config || defaultConfig();
+
+    var monthField = el("div",{class:"field"},[
+      el("label",{text:"対象月"}),
+      el("input",{type:"text", value:cfg.month||"", onchange:function(e){ updateConfig({month:e.target.value}); }})
+    ]);
+    monthField.querySelector("input").value = cfg.month || "";
+    box.appendChild(el("div",{class:"row"},[monthField]));
+
+    // CLC history readout
+    var hist = state.clcHistory;
+    var histLine = el("p",{class:"footnote"},[document.createTextNode(
+      "前月CLCメイン（自動でCLC×になります）："+((hist && hist.lastMain && hist.lastMain.length)? hist.lastMain.join("、") : "未設定")
+    )]);
+    box.appendChild(histLine);
+
+    // mCounts
+    var mTitle = document.createElement("div"); mTitle.style.cssText="font-size:12px;font-weight:700;margin:12px 0 6px;color:var(--text-2)";
+    mTitle.textContent = "今月のMシフト回数（バランス計算に使用）";
+    box.appendChild(mTitle);
+    var mRow = el("div",{class:"row"});
+    MEMBERS.forEach(function(m){
+      var f = el("div",{class:"field",style:"min-width:76px"},[
+        el("label",{text:m}),
+        el("input",{type:"number", min:"0"})
+      ]);
+      var input = f.querySelector("input");
+      input.value = (cfg.mCounts && cfg.mCounts[m]!=null) ? cfg.mCounts[m] : 0;
+      input.addEventListener("change", function(){
+        var v = Number(input.value)||0;
+        updateConfig({ mCounts: (function(){ var o={}; o[m]=v; return o; })() });
+      });
+      mRow.appendChild(f);
+    });
+    box.appendChild(mRow);
+
+    // entre2 target
+    var eTitle = document.createElement("div"); eTitle.style.cssText="font-size:12px;font-weight:700;margin:14px 0 6px;color:var(--text-2)";
+    eTitle.textContent = "今月のEnトレ2対象者（メインから除外されます）";
+    box.appendChild(eTitle);
+    box.appendChild(renderPillSet(cfg.entre2Target||[], function(next){
+      updateConfig({entre2Target: next});
+    }));
+
+    // m20 list
+    var cTitle = document.createElement("div"); cTitle.style.cssText="font-size:12px;font-weight:700;margin:14px 0 6px;color:var(--text-2)";
+    cTitle.textContent = "今月のM20チャレンジ中の人（カフェ会メイン対象）";
+    box.appendChild(cTitle);
+    box.appendChild(renderPillSet(cfg.m20List||[], function(next){
+      updateConfig({m20List: next});
+    }));
+
+    var m20ParseWrap = el("div",{style:"margin-top:8px"});
+    var m20Textarea = el("textarea",{
+      placeholder:"「◯月M SP進捗」のテキストをそのまま貼り付け(カッコ内の一番左の数字が20未満の人を自動でM20チャレンジ中と判定します)"
+    });
+    if(cfg.m20Source && cfg.m20Source.raw) m20Textarea.value = cfg.m20Source.raw;
+    var m20Feedback = el("div",{class:"footnote"});
+    if(cfg.m20Source && cfg.m20Source.parsed){
+      var appliedNames = Object.keys(cfg.m20Source.parsed);
+      if(appliedNames.length && (!cfg.m20List || cfg.m20List.length===0)){
+        m20Feedback.textContent = "解析済みのデータが保存されています。「自動判定して反映」を押すと、上のM20チャレンジ中リストに反映されます。";
+      }
+    }
+    var m20Btn = el("button",{class:"secondary", text:"進捗テキストから自動判定して反映", style:"margin-top:6px", onclick:function(){
+      var parsed = parseM20Progress(m20Textarea.value);
+      var names = Object.keys(parsed);
+      if(names.length===0){ m20Feedback.textContent = "解析できる行が見つかりませんでした。「名前 (数字/数字/数字)」の形式で貼り付けてください。"; return; }
+      var under20 = names.filter(function(n){ return parsed[n] < 20; });
+      updateConfig({ m20List: under20, m20Source: { raw: m20Textarea.value, parsed: parsed, appliedAt: new Date().toISOString() } });
+      m20Feedback.textContent = "判定結果："+(under20.length? under20.map(function(n){ return n+"("+parsed[n]+")"; }).join("、") : "該当者なし(全員20以上)");
+    }});
+    m20ParseWrap.appendChild(m20Textarea);
+    m20ParseWrap.appendChild(m20Btn);
+    m20ParseWrap.appendChild(m20Feedback);
+    box.appendChild(m20ParseWrap);
+
+    var summarySpan = document.getElementById("configSummary");
+    if(summarySpan){
+      summarySpan.textContent = (cfg.month||"未設定")+" ／ Enトレ2対象"+(cfg.entre2Target||[]).length+"名 ／ M20対象"+(cfg.m20List||[]).length+"名";
+    }
+  }
+
+  function parseM20Progress(text){
+    var result = {};
+    (text||"").split("\n").forEach(function(line){
+      var m = line.match(/([^\s（(0-9][^\s（(]*)\s*[（(]\s*(\d+)\s*[\/／]/);
+      if(m){
+        var name = m[1].replace(/[　\s]+$/,"").trim();
+        var first = parseInt(m[2],10);
+        if(MEMBERS.indexOf(name)>=0 && !isNaN(first)){ result[name] = first; }
+      }
+    });
+    return result;
+  }
+
+  function renderPillSet(selected, onChange){
+    var wrap = el("div",{class:"pillset"});
+    MEMBERS.forEach(function(m){
+      var on = selected.indexOf(m)>=0;
+      var pill = el("div",{class:"pill"+(on?" on":""), text:m, onclick:function(){
+        var next = selected.slice();
+        var idx = next.indexOf(m);
+        if(idx>=0) next.splice(idx,1); else next.push(m);
+        onChange(next);
+      }});
+      wrap.appendChild(pill);
+    });
+    return wrap;
+  }
+
+  // ---------- render: events ----------
+  function parseTypes(str){
+    return str.split(/[、,]/).map(function(s){ return s.trim(); }).filter(Boolean);
+  }
+
+  var DAY_LINE_RE = /(\d{1,2})\s*日\s*[（(]\s*([日月火水木金土])\s*[・、]?\s*(祝)?\s*[）)]/;
+  function parseScheduleBulk(text){
+    var rawLines = (text||"").split("\n").map(function(l){ return l.trim(); }).filter(function(l){ return l.length>0; });
+    var blocks = [];
+    var current = null;
+    rawLines.forEach(function(line){
+      var m = line.match(DAY_LINE_RE);
+      if(m){ current = { m:m, lines:[line] }; blocks.push(current); }
+      else if(current){ current.lines.push(line); }
+    });
+    var events = [];
+    blocks.forEach(function(b){
+      var m = b.m, lines = b.lines;
+      var day = parseInt(m[1],10);
+      var weekday = m[2];
+      var holiday = !!m[3];
+      var blockText = lines.join(" ");
+      var tentative = /仮/.test(blockText);
+      var venueIdx = -1, venue = "";
+      for(var i=1;i<lines.length;i++){
+        var vm = lines[i].match(/^[【\[]\s*([^】\]]+)\s*[】\]]/);
+        if(vm){ venueIdx = i; venue = vm[1].trim(); break; }
+      }
+      var typeLines = [];
+      var endIdx = venueIdx>=0 ? venueIdx : lines.length;
+      for(var j=1;j<endIdx;j++){
+        if(lines[j].indexOf("※")===0) continue;
+        typeLines.push(lines[j]);
+      }
+      var types = typeLines.join("、").split(/[、,／]/).map(function(s){ return s.trim(); }).filter(Boolean);
+      if(types.length===0) return;
+      if(venue.indexOf("オフィス")>=0) return;
+      events.push({ day:day, weekday:weekday, holiday:holiday, tentative:tentative, types:types, venue: venue||"荏原" });
+    });
+    return events;
+  }
+
+  function mergeEventsLocal(newEvents){
+    var byId = {};
+    state.events.forEach(function(e){ byId[e.id]=e; });
+    newEvents.forEach(function(e){ byId[e.id]=e; });
+    state.events = Object.keys(byId).map(function(k){ return byId[k]; }).sort(function(a,b){ return a.date.localeCompare(b.date); });
+  }
+
+  function renderBulkImportForm(){
+    var box = document.getElementById("bulkImportForm");
+    box.innerHTML = "";
+    var ta = el("textarea",{
+      placeholder:"月間の勉強会予定をそのまま貼り付け（例：「4日（日）\\nLmtg、CLC、フェス\\n【荏原】」の形式が続くもの）。メイン・サブの人名は無視され、日付・種別・場所だけ①の対象月として一括登録されます。",
+      style:"min-height:140px"
+    });
+    var feedback = el("div",{class:"import-alert"});
+    function showFeedback(kind, msg){
+      bulkImportFeedback = { kind:kind, msg:msg };
+      var liveFeedback = document.querySelector("#bulkImportForm .import-alert") || feedback;
+      liveFeedback.textContent = msg;
+      liveFeedback.className = "import-alert show "+kind;
+    }
+    function setLiveTaValue(v){
+      var liveTa = document.querySelector("#bulkImportForm textarea") || ta;
+      liveTa.value = v;
+    }
+    function setLiveBtnDisabled(v){
+      var liveBtn = document.querySelector("#bulkImportForm button") || btn;
+      liveBtn.disabled = v;
+    }
+    if(bulkImportFeedback){ showFeedback(bulkImportFeedback.kind, bulkImportFeedback.msg); }
+    var btn = el("button",{text:"読み込んでまとめて追加", onclick:function(){
+      var cfg = state.config || defaultConfig();
+      var m = /^(\d{4})-(\d{2})$/.exec(cfg.month||"");
+      if(!m){ showFeedback("err","①の対象月が未設定です（YYYY-MM形式で入力してください）。"); return; }
+      if(!ta.value.trim()){ showFeedback("err","テキストが貼り付けられていません。上の欄に予定表を貼り付けてください。"); return; }
+      var parsed = parseScheduleBulk(ta.value);
+      if(parsed.length===0){ showFeedback("err","取り込める日程が見つかりませんでした。「4日（日）」のように「◯日（曜日）」で始まる行があるかご確認ください。"); return; }
+      if(!db){ showFeedback("err","共有保存の準備中です。数秒待ってからもう一度お試しください。"); return; }
+      setLiveBtnDisabled(true);
+      showFeedback("ok","保存中…（"+parsed.length+"件）");
+      var labels = [];
+      var writes = [];
+      var newEvents = [];
+      parsed.forEach(function(p){
+        var dateStr = cfg.month + "-" + String(p.day).padStart(2,"0");
+        var ev = { id:dateStr, date:dateStr, weekday:p.weekday, holiday:p.holiday, tentative:p.tentative, types:p.types, venue:p.venue };
+        writes.push(db.collection("events").doc(ev.id).set(ev));
+        writes.push(db.collection("availability").doc(ev.id).set({values:{}}));
+        newEvents.push(ev);
+        labels.push(p.day+"日");
+      });
+      // 楽観的更新：書き込みPromiseの完了を待たずに、まずローカル表示へ反映する。
+      mergeEventsLocal(newEvents);
+      newEvents.forEach(function(ev){ state.availability[ev.id] = {values:{}}; });
+      render();
+      Promise.all(writes).then(function(){
+        setLiveBtnDisabled(false);
+        showFeedback("ok","✔ "+parsed.length+"件取り込みました："+labels.join("、")+"　→下の「日程一覧」で確認できます。");
+        setLiveTaValue("");
+        var eventsCard = document.getElementById("eventsCard");
+        if(eventsCard){
+          eventsCard.open = true;
+          if(typeof eventsCard.scrollIntoView === "function"){ eventsCard.scrollIntoView({behavior:"smooth", block:"start"}); }
+        }
+      }).catch(function(err){
+        setLiveBtnDisabled(false);
+        var detail = (err && (err.message || err.code)) ? String(err.message || err.code) : String(err);
+        showFeedback("err","保存に失敗しました（"+detail+"）。お手数ですがこのエラー内容をそのままご共有ください。");
+      });
+    }});
+    box.appendChild(ta);
+    box.appendChild(btn);
+    box.appendChild(feedback);
+  }
+
+  function renderEventForm(){
+    var box = document.getElementById("eventForm");
+    box.innerHTML = "";
+    var dateInput = el("input",{type:"date"});
+    var typesInput = el("input",{type:"text", placeholder:"例：CLC、Lmtg、フェス"});
+    var venueInput = el("input",{type:"text", placeholder:"荏原"});
+    var holidayInput = el("input",{type:"checkbox"});
+    var tentativeInput = el("input",{type:"checkbox"});
+    var feedback = el("div",{class:"import-alert"});
+    function showFeedback(kind, msg){ feedback.textContent = msg; feedback.className = "import-alert show "+kind; }
+
+    var addBtn = el("button",{text:"日程を追加", onclick:function(){
+      if(!dateInput.value || !typesInput.value.trim()){ showFeedback("err","日付と種別は必須です。"); return; }
+      if(!db){ showFeedback("err","共有保存の準備中です。数秒待ってからもう一度お試しください。"); return; }
+      var d = new Date(dateInput.value+"T00:00:00");
+      var wd = ["日","月","火","水","木","金","土"][d.getDay()];
+      var ev = {
+        id: dateInput.value, date: dateInput.value, weekday: wd,
+        holiday: holidayInput.checked, tentative: tentativeInput.checked,
+        types: parseTypes(typesInput.value), venue: venueInput.value.trim()||"荏原"
+      };
+      addBtn.disabled = true;
+      mergeEventsLocal([ev]);
+      state.availability[ev.id] = {values:{}};
+      render();
+      Promise.all([
+        db.collection("events").doc(ev.id).set(ev),
+        db.collection("availability").doc(ev.id).set({values:{}})
+      ]).then(function(){
+        addBtn.disabled = false;
+        showFeedback("ok","✔ "+ev.date+"を追加しました。");
+        dateInput.value=""; typesInput.value=""; venueInput.value=""; holidayInput.checked=false; tentativeInput.checked=false;
+      }).catch(function(err){
+        addBtn.disabled = false;
+        var detail = (err && (err.message || err.code)) ? String(err.message || err.code) : String(err);
+        showFeedback("err","保存に失敗しました（"+detail+"）。");
+      });
+    }});
+
+    var form = el("div",{class:"row"},[
+      el("div",{class:"field"},[el("label",{text:"日付"}), dateInput]),
+      el("div",{class:"field",style:"min-width:220px"},[el("label",{text:"種別（読点区切り）"}), typesInput]),
+      el("div",{class:"field",style:"min-width:100px"},[el("label",{text:"場所"}), venueInput]),
+      el("div",{class:"field"},[el("label",{text:"祝日"}), holidayInput]),
+      el("div",{class:"field"},[el("label",{text:"仮日程"}), tentativeInput]),
+      addBtn
+    ]);
+    box.appendChild(form);
+    box.appendChild(feedback);
+  }
+
+  function renderEventsTable(){
+    var table = document.getElementById("eventsTable");
+    var thead = table.querySelector("thead"); var tbody = table.querySelector("tbody");
+    thead.innerHTML=""; tbody.innerHTML="";
+    thead.appendChild(el("tr",{},[
+      el("th",{class:"datecell",text:"日程"}),
+      el("th",{text:"場所"}),
+      el("th",{text:"操作"})
+    ]));
+    var summarySpan = document.getElementById("eventsSummary");
+    if(summarySpan){ summarySpan.textContent = "日程"+state.events.length+"件"; }
+    if(state.events.length===0){
+      tbody.appendChild(el("tr",{},[el("td",{colspan:"3",class:"emptylist",text:"日程がまだありません。上のフォームから追加してください。"})]));
+      return;
+    }
+    state.events.forEach(function(ev){
+      var tags = el("div",{class:"tags"});
+      (ev.types||[]).forEach(function(t){ tags.appendChild(el("span",{class:"tag",text:t})); });
+      var dcell = el("td",{class:"datecell"},[
+        el("div",{class:"d",text: ev.date+"（"+ev.weekday+(ev.holiday?"祝":"")+"）"+(ev.tentative?" ※仮":"")}),
+        tags
+      ]);
+      var venueCell = el("td",{text: ev.venue||""});
+      var actionCell = el("td",{},[
+        el("div",{class:"eventrow-actions"},[
+          el("button",{class:"ghost", text:"削除（保管）", onclick:function(){
+            if(!db) return;
+            state.events = state.events.filter(function(e){ return e.id!==ev.id; });
+            render();
+            db.collection("events").doc(ev.id).update({archived:true});
+          }})
+        ])
+      ]);
+      tbody.appendChild(el("tr",{},[dcell, venueCell, actionCell]));
+    });
+  }
+
+  // ---------- render: availability grid ----------
+  function renderAvailTable(){
+    var table = document.getElementById("availTable");
+    var thead = table.querySelector("thead"); var tbody = table.querySelector("tbody");
+    thead.innerHTML=""; tbody.innerHTML="";
+    var headRow = el("tr",{},[el("th",{class:"datecell",text:"日程"})]);
+    MEMBERS.forEach(function(m){ headRow.appendChild(el("th",{title:PAIR_NOTE[m]||"",text:m})); });
+    thead.appendChild(headRow);
+
+    var availSummarySpan = document.getElementById("availSummary");
+    if(availSummarySpan){ availSummarySpan.textContent = state.events.length+"日程 × 9名"; }
+
+    if(state.events.length===0){
+      tbody.appendChild(el("tr",{},[el("td",{colspan:String(MEMBERS.length+1), class:"emptylist", text:"日程を登録すると可否表が表示されます。"})]));
+      return;
+    }
+
+    state.events.forEach(function(ev){
+      ensureAvailDoc(ev.id);
+      var tags = el("div",{class:"tags"});
+      (ev.types||[]).forEach(function(t){ tags.appendChild(el("span",{class:"tag",text:t})); });
+      var dcell = el("td",{class:"datecell"},[
+        el("div",{class:"d",text: ev.date+"（"+ev.weekday+(ev.holiday?"祝":"")+"）"}),
+        tags
+      ]);
+      var tr = el("tr",{},[dcell]);
+      MEMBERS.forEach(function(m){
+        var info = cellInfo(m, ev);
+        var sel = el("select",{class:"cell"+(info.warn?" warn":"")+(info.prevMain&&!info.warn?" prevmain":"")});
+        ["◯","△","×"].forEach(function(opt){
+          var o = document.createElement("option"); o.value=opt; o.textContent=opt;
+          if(opt===info.value) o.selected = true;
+          sel.appendChild(o);
+        });
+        var titleParts = [];
+        if(info.ruleDefault.reason) titleParts.push(info.ruleDefault.reason);
+        if(info.prevMain) titleParts.push("前月、同じ種別でメインでした（できれば別の人を優先)");
+        if(titleParts.length) sel.title = titleParts.join(" / ");
+        sel.addEventListener("change", function(){
+          if(!db) return;
+          var patch = { values: {} };
+          patch.values[m] = sel.value;
+          // 楽観的更新：ローカルの可否表を即時反映してから書き込む。
+          var cur = state.availability[ev.id] || {values:{}};
+          var nextValues = Object.assign({}, cur.values, patch.values);
+          state.availability[ev.id] = Object.assign({}, cur, {values: nextValues});
+          render();
+          db.collection("availability").doc(ev.id).update(patch).catch(function(){
+            return db.collection("availability").doc(ev.id).set(state.availability[ev.id]);
+          });
+        });
+        var td = el("td",{},[sel]);
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ---------- assignment engine ----------
+  function runAssignment(){
+    var cfg = state.config || defaultConfig();
+    var membersState = {};
+    MEMBERS.forEach(function(m){ membersState[m] = { mainTotal: Number((cfg.mCounts&&cfg.mCounts[m])||0), subTotal:0, studyMain:0 }; });
+    var warnings = [];
+    var assignments = [];
+    var sortedEvents = state.events.slice().sort(function(a,b){ return a.date.localeCompare(b.date); });
+
+    sortedEvents.forEach(function(ev){
+      var extraType = extraSlotType(ev);
+      var takenToday = {};
+
+      var pool = MEMBERS.filter(function(m){ return m!=="とよかず" && m!=="やまぴー"; });
+      pool = pool.filter(function(m){ return cellInfo(m, ev).value !== "×"; });
+      pool.sort(function(a,b){
+        var pa = membersState[a].mainTotal + (wasMainForSameTypeLastMonth(a,ev)?0.5:0) + (cellInfo(a,ev).value==="△"?0.4:0);
+        var pb = membersState[b].mainTotal + (wasMainForSameTypeLastMonth(b,ev)?0.5:0) + (cellInfo(b,ev).value==="△"?0.4:0);
+        return pa - pb || (Math.random()-0.5);
+      });
+
+      var mains = [];
+      pool.forEach(function(m){
+        if(mains.length>=2) return;
+        if(mains.indexOf("よう")>=0 && m==="つよぽん") return;
+        if(mains.indexOf("つよぽん")>=0 && m==="よう") return;
+        mains.push(m);
+      });
+      var forced = [];
+      if(mains.length<2){
+        var fallback = MEMBERS.filter(function(m){ return m!=="とよかず" && m!=="やまぴー" && mains.indexOf(m)<0; })
+          .sort(function(a,b){ return membersState[a].mainTotal - membersState[b].mainTotal; });
+        fallback.forEach(function(m){
+          if(mains.length>=2) return;
+          mains.push(m); forced.push(m);
+        });
+        warnings.push(ev.date+"："+ev.weekday+" メイン候補が不足し、ルール上×の人を仮配置しました（"+forced.join("、")+"）。確認してください。");
+      }
+      mains.forEach(function(m){ membersState[m].mainTotal++; membersState[m].studyMain++; takenToday[m]=true; });
+
+      var extraPerson = null;
+      if(extraType){
+        var epool = ["とよかず","やまぴー"].filter(function(m){ return cellInfo(m, ev).value!=="×"; });
+        epool.sort(function(a,b){
+          var pa = membersState[a].mainTotal + (wasMainForSameTypeLastMonth(a,ev)?0.5:0) + (cellInfo(a,ev).value==="△"?0.4:0);
+          var pb = membersState[b].mainTotal + (wasMainForSameTypeLastMonth(b,ev)?0.5:0) + (cellInfo(b,ev).value==="△"?0.4:0);
+          return pa - pb;
+        });
+        if(epool.length>0){
+          extraPerson = epool[0];
+          membersState[extraPerson].mainTotal++; membersState[extraPerson].studyMain++;
+          takenToday[extraPerson]=true;
+        }
+      }
+
+      var has2nd = normTypes(ev.types).indexOf("2nd")>=0;
+      var subPool = MEMBERS.filter(function(m){ return m!=="とよかず" && m!=="やまぴー" && !takenToday[m]; });
+      subPool.sort(function(a,b){
+        var pa = membersState[a].subTotal + ((has2nd && (a==="まぎー"||a==="こばぴー"))?0.5:0) + (cellInfo(a,ev).value==="△"?0.3:0);
+        var pb = membersState[b].subTotal + ((has2nd && (b==="まぎー"||b==="こばぴー"))?0.5:0) + (cellInfo(b,ev).value==="△"?0.3:0);
+        return pa-pb || (Math.random()-0.5);
+      });
+      var subs = subPool.slice(0,2);
+      if(subs.indexOf("よう")>=0 && subs.indexOf("つよぽん")>=0){
+        var altIdx = -1;
+        for(var i=0;i<subPool.length;i++){ if(subs.indexOf(subPool[i])<0){ altIdx=i; break; } }
+        if(altIdx>=0){ subs[1] = subPool[altIdx]; }
+        else { warnings.push(ev.date+"：よう・つよぽんが同日サブになっています（候補不足のため回避できず）。"); }
+      }
+      subs.forEach(function(m){ membersState[m].subTotal++; });
+
+      assignments.push({
+        eventId: ev.id, date: ev.date, weekday: ev.weekday, types: ev.types,
+        main: mains, extra: extraPerson, sub: subs, forced: forced
+      });
+    });
+
+    var summary = {};
+    MEMBERS.forEach(function(m){
+      summary[m] = {
+        studyMain: membersState[m].studyMain,
+        mInput: Number((cfg.mCounts&&cfg.mCounts[m])||0),
+        subTotal: membersState[m].subTotal,
+        total: membersState[m].mainTotal
+      };
+    });
+
+    return { assignments:assignments, warnings:warnings, summary:summary, generatedAt: new Date().toISOString(), clcMain: findClcMain(assignments) };
+  }
+
+  function findClcMain(assignments){
+    for(var i=0;i<assignments.length;i++){
+      var a = assignments[i];
+      if((a.types||[]).indexOf("CLC")>=0){
+        var names = a.main.slice();
+        if(a.extra) names.push(a.extra);
+        return names;
+      }
+    }
+    return null;
+  }
+
+  // ---------- render: previous month reference ----------
+  function renderPrevMonth(){
+    var cfg = state.config || defaultConfig();
+    var key = prevMonthKey(cfg.month);
+    var desc = document.getElementById("prevMonthDesc");
+    var table = document.getElementById("prevMonthTable");
+    var thead = table.querySelector("thead"); var tbody = table.querySelector("tbody");
+    thead.innerHTML=""; tbody.innerHTML="";
+    var hist = key ? state.resultsHistory[key] : null;
+
+    if(!hist){
+      desc.textContent = "前月(" + (key||"-") + ")のシフトはまだ記録がありません。④で確定すると、翌月このまま参照できるようになります。";
+      tbody.appendChild(el("tr",{},[el("td",{colspan:"3",class:"emptylist",text:"データなし"})]));
+      return;
+    }
+    desc.textContent = (hist.month||key) + "の確定シフトです（参照専用）。";
+    thead.appendChild(el("tr",{},[
+      el("th",{class:"datecell",text:"日程"}),
+      el("th",{text:"メイン"}),
+      el("th",{text:"サブ"})
+    ]));
+    hist.assignments.forEach(function(a){
+      var dcell = el("td",{class:"datecell"},[
+        el("div",{class:"d",text:a.date+"（"+a.weekday+"）"}),
+        el("div",{class:"types",text:(a.types||[]).join("・")})
+      ]);
+      var mainNames = el("div",{class:"names"});
+      (a.main||[]).forEach(function(m){ mainNames.appendChild(el("span",{class:"nametag", text:m})); });
+      if(a.extra){ mainNames.appendChild(el("span",{class:"nametag extra", text:a.extra+"（+1）"})); }
+      var subNames = el("div",{class:"names"});
+      (a.sub||[]).forEach(function(m){ subNames.appendChild(el("span",{class:"nametag sub", text:m})); });
+      tbody.appendChild(el("tr",{},[dcell, el("td",{},[mainNames]), el("td",{},[subNames])]));
+    });
+  }
+
+  // ---------- render: results & summary ----------
+  function renderResult(){
+    var box = document.getElementById("resultBody");
+    box.innerHTML = "";
+    var result = state.result;
+    if(!result){
+      box.appendChild(el("div",{class:"emptylist",text:"まだ生成されていません。④の「自動生成する」を押してください。"}));
+      document.getElementById("commitBtn").disabled = true;
+      return;
+    }
+    var wrap = el("div",{class:"tablewrap"});
+    var table = el("table",{class:"result-table"});
+    var thead = el("thead"); var tbody = el("tbody");
+    table.appendChild(thead); table.appendChild(tbody);
+    wrap.appendChild(table);
+    thead.appendChild(el("tr",{},[
+      el("th",{class:"datecell",text:"日程"}),
+      el("th",{text:"メイン"}),
+      el("th",{text:"サブ"})
+    ]));
+    result.assignments.forEach(function(a){
+      var dcell = el("td",{class:"datecell"},[
+        el("div",{class:"d",text:a.date+"（"+a.weekday+"）"}),
+        el("div",{class:"types",text:(a.types||[]).join("・")})
+      ]);
+      var mainNames = el("div",{class:"names"});
+      a.main.forEach(function(m){
+        var forced = a.forced && a.forced.indexOf(m)>=0;
+        mainNames.appendChild(el("span",{class:"nametag"+(forced?" extra":""), text:m+(forced?"⚠":"")}));
+      });
+      if(a.extra){ mainNames.appendChild(el("span",{class:"nametag extra", text:a.extra+"（+1）"})); }
+      var subNames = el("div",{class:"names"});
+      a.sub.forEach(function(m){ subNames.appendChild(el("span",{class:"nametag sub", text:m})); });
+      tbody.appendChild(el("tr",{},[dcell, el("td",{},[mainNames]), el("td",{},[subNames])]));
+    });
+    box.appendChild(wrap);
+    box.appendChild(el("div",{class:"footnote",text:"結果は提案です。③のセルの◯△×を変えて再生成すれば調整できます。"}));
+
+    document.getElementById("commitBtn").disabled = false;
+  }
+
+  function renderWarnings(){
+    var box = document.getElementById("warnBox");
+    box.innerHTML = "";
+    var result = state.result;
+    if(!result || !result.warnings || result.warnings.length===0) return;
+    var list = el("div",{class:"warnlist"});
+    result.warnings.forEach(function(w){ list.appendChild(el("div",{class:"warnitem",text:"⚠ "+w})); });
+    box.appendChild(list);
+  }
+
+  function renderSummary(){
+    var box = document.getElementById("summaryBody");
+    box.innerHTML = "";
+    var result = state.result;
+    var cfg = state.config || defaultConfig();
+    var data = MEMBERS.map(function(m){
+      if(result && result.summary && result.summary[m]) return {name:m, s:result.summary[m]};
+      var mInput = Number((cfg.mCounts&&cfg.mCounts[m])||0);
+      return {name:m, s:{studyMain:0, mInput:mInput, subTotal:0, total:mInput}};
+    });
+    var maxTotal = Math.max.apply(null, data.map(function(d){ return d.s.total; }).concat([1]));
+    var mean = data.reduce(function(a,d){ return a+d.s.total; },0) / data.length;
+
+    data.forEach(function(d){
+      var dev = Math.abs(d.s.total - mean);
+      var tile = el("div",{class:"tile"},[
+        el("div",{class:"name"},[
+          document.createTextNode(d.name),
+          el("span",{class:"total"+(dev>1?" warn":""), text:String(d.s.total)})
+        ]),
+        el("div",{class:"meter"},[ el("i",{style:"width:"+Math.round((d.s.total/maxTotal)*100)+"%"}) ]),
+        el("div",{class:"breakdown"},[
+          el("span",{text:"勉強会メイン "+d.s.studyMain}),
+          el("span",{text:"M "+d.s.mInput}),
+          el("span",{text:"サブ "+d.s.subTotal})
+        ])
+      ]);
+      if(dev>1){ tile.style.borderColor = "var(--warn)"; }
+      box.appendChild(tile);
+    });
+  }
+
+  // ---------- events ----------
+  document.getElementById("genBtn").addEventListener("click", function(){
+    var result = runAssignment();
+    state.result = result;
+    if(db) db.doc("results/latest").set(result);
+    render();
+  });
+  document.getElementById("commitBtn").addEventListener("click", function(){
+    var result = state.result;
+    if(!result || !db) return;
+    var month = (state.config&&state.config.month)||"";
+    if(result.clcMain && result.clcMain.length>0){
+      var clcSeed = { lastMain: result.clcMain, month: month };
+      state.clcHistory = clcSeed;
+      db.doc("history/clc").set(clcSeed);
+    }
+    if(month){
+      var histEntry = {
+        month: month, note:"確定済み", generatedAt: result.generatedAt,
+        assignments: result.assignments.map(function(a){
+          return { date:a.date, weekday:a.weekday, types:a.types, main:a.main, extra:a.extra, sub:a.sub };
+        })
+      };
+      state.resultsHistory[month] = histEntry;
+      db.collection("resultsHistory").doc(month).set(histEntry);
+    }
+    render();
+    document.getElementById("commitBtn").disabled = true;
+  });
+
+  function render(){
+    renderConfig();
+    renderPrevMonth();
+    renderBulkImportForm();
+    renderEventForm();
+    renderEventsTable();
+    renderAvailTable();
+    renderResult();
+    renderWarnings();
+    renderSummary();
+  }
+
+  init();
+})();
+</script>
