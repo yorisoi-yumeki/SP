@@ -145,13 +145,13 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
         <li><b>CLC</b>：メインは2ヶ月連続不可(前月実績から自動判定)</li>
         <li><b>Enトレ2</b>：その月の対象者はメイン不可</li>
         <li><b>カフェ会</b>：メインはM20チャレンジ中の人のみ</li>
-        <li><b>前月同種別メイン</b>：前月は赤、前々月は黄で表示。できれば別の人を優先(必須ではない)</li>
+        <li><b>前月メイン</b>：前月は赤、前々月は黄で表示。できれば別の人を優先(必須ではない)</li>
         <li><b>合計バランス</b>：勉強会メイン＋M入力数を9名で均等化／勉強会サブは別枠で均等化</li>
       </ul>
       <div class="rules-legend">
         <div>◯＝入れる　／　△＝できれば避けたい　／　×＝不可</div>
         <div>×は自動生成で除外、△は優先度を下げて割当</div>
-        <div>可否表の赤背景＝前月同種別メイン、黄背景＝前々月同種別メイン</div>
+        <div>可否表の赤背景＝前月メイン、黄背景＝前々月メイン</div>
       </div>
     </aside>
 
@@ -164,11 +164,23 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
         </div>
       </details>
 
-      <section class="card" id="bulkImportCard">
-        <h2>②勉強会日程を貼り付けて一括登録</h2>
-        <p class="desc">月間の勉強会予定をそのまま貼り付ければ、①の対象月として日程を一括登録します。</p>
-        <div id="bulkImportForm" class="stack"></div>
-      </section>
+      <details class="disclosure" id="bulkImportCard" open>
+        <summary><span class="stitle">②勉強会日程を貼り付けて一括登録</span><span class="ssum" id="bulkImportSummary"></span></summary>
+        <div class="disclosure-body">
+          <p class="desc">月間の勉強会予定をそのまま貼り付ければ、①の対象月として日程を一括登録します。</p>
+          <div id="bulkImportForm" class="stack"></div>
+        </div>
+      </details>
+
+      <details class="disclosure" id="availCard" open>
+        <summary><span class="stitle">③可否表（◯入れる / △出来れば避けたい / ×不可）</span><span class="ssum" id="availSummary"></span></summary>
+        <div class="disclosure-body">
+          <p class="desc">ルール上入れない日は自動で×が入ります。本人の希望で変更できますが、×から変更すると警告色で表示されます。赤背景は「前月、同じ種別でメインだった人」、黄背景は「前々月、同じ種別でメインだった人」の目印です（できれば今回は別の人を優先／必須ではありません）。左のルール一覧も参照してください。</p>
+          <div class="tablewrap">
+            <table id="availTable"><thead></thead><tbody></tbody></table>
+          </div>
+        </div>
+      </details>
 
       <div class="compare-grid">
         <details class="disclosure" id="eventsCard">
@@ -190,19 +202,9 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
         </section>
       </div>
 
-      <details class="disclosure" id="availCard" open>
-        <summary><span class="stitle">③可否表（◯入れる / △出来れば避けたい / ×不可）</span><span class="ssum" id="availSummary"></span></summary>
-        <div class="disclosure-body">
-          <p class="desc">ルール上入れない日は自動で×が入ります。本人の希望で変更できますが、×から変更すると警告色で表示されます。赤背景は「前月、同じ種別でメインだった人」、黄背景は「前々月、同じ種別でメインだった人」の目印です（できれば今回は別の人を優先／必須ではありません）。左のルール一覧も参照してください。</p>
-          <div class="tablewrap">
-            <table id="availTable"><thead></thead><tbody></tbody></table>
-          </div>
-        </div>
-      </details>
-
       <section class="card" id="currentMonthCard">
         <h2>今月のシフト</h2>
-        <p class="desc">メイン合計（勉強会+M）とサブ回数（勉強会のみ）が均等になるよう自動で割り当てます。表の下にある「回数(確認用)」はメイン・サブの列とは分離した確認用の一覧で、コピーする内容には含まれません（合計＝勉強会メイン＋M入力数、サブは別集計。「Mシフト必要回数」は勉強会メイン+サブの実績をもとに自動算出される参考値です）。「コピー」を押すとLINE等に貼り付けられるテキストをコピーし、同時に来月の判定に必要な情報（CLCの前月メイン・前月/前々月の同種別メイン等）を記録します。</p>
+        <p class="desc">メイン合計（勉強会+M）とサブ回数（勉強会のみ）が均等になるよう自動で割り当てます。表の下にある「回数(確認用)」はメイン・サブの列とは分離した確認用の一覧で、コピーする内容には含まれません（合計＝勉強会メイン＋M入力数、サブは別集計。「Mシフト必要回数」は勉強会メイン+サブの実績をもとに自動算出される参考値です）。「コピー」を押すとLINE等に貼り付けられるテキストをコピーし、同時に来月の判定に必要な情報（CLCの前月メイン・前月/前々月メイン等）を記録します。</p>
         <div class="row">
           <button id="genBtn">自動生成する</button>
           <button id="copyBtn" class="secondary">この結果をコピー</button>
@@ -244,10 +246,6 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
     result: null,
     resultsHistory: {}
   };
-  var seededEvents = false;
-  var seededConfig = false;
-  var seededHistory = false;
-  var seededResultsHistory = false;
   var bulkImportFeedback = null; // {kind:"ok"|"err", msg:string} | null
 
   // 8月の実績(前々月参照。ユーザーから送付された実データをそのまま記録)
@@ -477,17 +475,31 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
     start();
   }
 
+  // 初回セットアップ済みかどうかの永続フラグ。集計クエリ(collection().onSnapshot)は
+  // 一時的にempty扱いになる瞬間があり得るため、その場の見た目だけで再シード判定すると
+  // 既に入力済みの実データを初期サンプルへ巻き戻してしまう恐れがある(実際に②で
+  // 取り込んだ日程がリロードのたびに消える不具合の原因だった)。このフラグをDBへ
+  // 一度書き込んだ後は、以後どんなスナップショットが来てもシードし直さない。
+  var seedStatus = {};
   function init(){
     if(window.claude && window.claude.use){
       window.claude.use("db").then(function(handle){
         db = handle;
         if(!db){ renderNoDb(); render(); return; }
-        subscribeAll();
+        db.doc("state/seedStatus").get().then(function(snap){
+          seedStatus = snap.exists ? snap.data() : {};
+          subscribeAll();
+        }).catch(function(){ subscribeAll(); });
       }).catch(function(){ renderNoDb(); render(); });
     } else {
       renderNoDb();
     }
     render();
+  }
+  function markSeeded(key){
+    seedStatus = Object.assign({}, seedStatus);
+    seedStatus[key] = true;
+    db.doc("state/seedStatus").set(seedStatus);
   }
 
   function renderNoDb(){
@@ -506,19 +518,19 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
 
     subscribeWithRetry("設定", function(){ return db.doc("state/config"); }, function(snap){
       if(snap.exists){ state.config = snap.data(); }
-      else if(!seededConfig){ seededConfig = true; db.doc("state/config").set(SEED_CONFIG); state.config = SEED_CONFIG; }
+      else if(!seedStatus.config){ markSeeded("config"); db.doc("state/config").set(SEED_CONFIG); state.config = SEED_CONFIG; }
       render();
     });
 
     subscribeWithRetry("CLC履歴", function(){ return db.doc("history/clc"); }, function(snap){
       if(snap.exists){ state.clcHistory = snap.data(); }
-      else if(!seededHistory){ seededHistory = true; var seed = {lastMain:["まぎー","こばぴー"], month:"2026-09"}; db.doc("history/clc").set(seed); state.clcHistory = seed; }
+      else if(!seedStatus.clc){ markSeeded("clc"); var seed = {lastMain:["まぎー","こばぴー"], month:"2026-09"}; db.doc("history/clc").set(seed); state.clcHistory = seed; }
       render();
     });
 
     subscribeWithRetry("日程一覧", function(){ return db.collection("events").orderBy("date","asc"); }, function(snap){
-      if(snap.empty && !seededEvents){
-        seededEvents = true;
+      if(snap.empty && !seedStatus.events){
+        markSeeded("events");
         SEED_EVENTS.forEach(function(ev){
           db.collection("events").doc(ev.id).set(ev);
           db.collection("availability").doc(ev.id).set({values:{}});
@@ -543,8 +555,8 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
     });
 
     subscribeWithRetry("過去のシフト", function(){ return db.collection("resultsHistory"); }, function(snap){
-      if(snap.empty && !seededResultsHistory){
-        seededResultsHistory = true;
+      if(snap.empty && !seedStatus.resultsHistory){
+        markSeeded("resultsHistory");
         db.collection("resultsHistory").doc(SEED_RESULTS_HISTORY_2026_08.month).set(SEED_RESULTS_HISTORY_2026_08);
         db.collection("resultsHistory").doc(SEED_RESULTS_HISTORY_2026_09.month).set(SEED_RESULTS_HISTORY_2026_09);
         var h = {};
@@ -861,6 +873,11 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
         setLiveBtnDisabled(false);
         showFeedback("ok","✔ "+parsed.length+"件取り込みました："+labels.join("、")+"　→下の「日程一覧」で確認できます。"+(anyPrefilled?"（メインが既に決まっていた日は、その人を◯に反映しました）":""));
         setLiveTaValue("");
+        // 取り込み完了後は①と同じように折りたたみ、代わりに日程一覧を開いて見せる。
+        var bulkImportCard = document.getElementById("bulkImportCard");
+        var bulkImportSummary = document.getElementById("bulkImportSummary");
+        if(bulkImportSummary){ bulkImportSummary.textContent = "前回：✔ "+parsed.length+"件取り込み済み"; }
+        if(bulkImportCard){ bulkImportCard.open = false; }
         var eventsCard = document.getElementById("eventsCard");
         if(eventsCard){
           eventsCard.open = true;
