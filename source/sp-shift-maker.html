@@ -484,16 +484,26 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
   // 既に入力済みの実データを初期サンプルへ巻き戻してしまう恐れがある(実際に②で
   // 取り込んだ日程がリロードのたびに消える不具合の原因だった)。このフラグをDBへ
   // 一度書き込んだ後は、以後どんなスナップショットが来てもシードし直さない。
+  //
+  // 注意：このフラグの読み込み(state/seedStatusのget())を待ってから購読
+  // (subscribeAll)を始めると、そのget()が詰まった/失敗した場合に他の全データの
+  // 購読まで止まってしまい、「別のブラウザで開くと何も見えない」不具合の原因に
+  // なる(実際に一度これで発生した)。そのため購読は即座に始め、シード判定だけを
+  // フラグの読み込み完了まで保留する(seedIfNeeded/pendingSeed)。
   var seedStatus = {};
+  var seedStatusLoaded = false;
+  var pendingSeed = {};
   function init(){
     if(window.claude && window.claude.use){
       window.claude.use("db").then(function(handle){
         db = handle;
         if(!db){ renderNoDb(); render(); return; }
+        subscribeAll();
         db.doc("state/seedStatus").get().then(function(snap){
           seedStatus = snap.exists ? snap.data() : {};
-          subscribeAll();
-        }).catch(function(){ subscribeAll(); });
+          seedStatusLoaded = true;
+          recheckPendingSeeds();
+        }).catch(function(){ seedStatusLoaded = true; recheckPendingSeeds(); });
       }).catch(function(){ renderNoDb(); render(); });
     } else {
       renderNoDb();
@@ -504,6 +514,19 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
     seedStatus = Object.assign({}, seedStatus);
     seedStatus[key] = true;
     db.doc("state/seedStatus").set(seedStatus);
+  }
+  // フラグの読み込みが終わるまでは絶対にシードしない。読み込み前に「空/未存在」
+  // に見えた場合はdoSeedをpendingSeedへ保留し、recheckPendingSeedsでやり直す。
+  function seedIfNeeded(key, doSeed){
+    if(!seedStatusLoaded){ pendingSeed[key] = doSeed; return; }
+    if(seedStatus[key]) return;
+    markSeeded(key);
+    doSeed();
+  }
+  function recheckPendingSeeds(){
+    var pending = pendingSeed;
+    pendingSeed = {};
+    Object.keys(pending).forEach(function(key){ seedIfNeeded(key, pending[key]); });
   }
 
   function renderNoDb(){
@@ -521,25 +544,43 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
     }
 
     subscribeWithRetry("設定", function(){ return db.doc("state/config"); }, function(snap){
-      if(snap.exists){ state.config = snap.data(); }
-      else if(!seedStatus.config){ markSeeded("config"); db.doc("state/config").set(SEED_CONFIG); state.config = SEED_CONFIG; }
+      if(snap.exists){
+        state.config = snap.data();
+      } else {
+        seedIfNeeded("config", function(){
+          db.doc("state/config").set(SEED_CONFIG);
+          state.config = SEED_CONFIG;
+          render();
+        });
+      }
       render();
     });
 
     subscribeWithRetry("CLC履歴", function(){ return db.doc("history/clc"); }, function(snap){
-      if(snap.exists){ state.clcHistory = snap.data(); }
-      else if(!seedStatus.clc){ markSeeded("clc"); var seed = {lastMain:["まぎー","こばぴー"], month:"2026-09"}; db.doc("history/clc").set(seed); state.clcHistory = seed; }
+      if(snap.exists){
+        state.clcHistory = snap.data();
+      } else {
+        seedIfNeeded("clc", function(){
+          var seed = {lastMain:["まぎー","こばぴー"], month:"2026-09"};
+          db.doc("history/clc").set(seed);
+          state.clcHistory = seed;
+          render();
+        });
+      }
       render();
     });
 
     subscribeWithRetry("日程一覧", function(){ return db.collection("events").orderBy("date","asc"); }, function(snap){
-      if(snap.empty && !seedStatus.events){
-        markSeeded("events");
-        SEED_EVENTS.forEach(function(ev){
-          db.collection("events").doc(ev.id).set(ev);
-          db.collection("availability").doc(ev.id).set({values:{}});
+      if(snap.empty){
+        state.events = [];
+        seedIfNeeded("events", function(){
+          SEED_EVENTS.forEach(function(ev){
+            db.collection("events").doc(ev.id).set(ev);
+            db.collection("availability").doc(ev.id).set({values:{}});
+          });
+          state.events = SEED_EVENTS.slice();
+          render();
         });
-        state.events = SEED_EVENTS.slice();
       } else {
         state.events = snap.docs.map(function(d){ var data=d.data(); data.id=d.id; return data; }).filter(function(e){ return !e.archived; });
       }
@@ -559,14 +600,17 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
     });
 
     subscribeWithRetry("過去のシフト", function(){ return db.collection("resultsHistory"); }, function(snap){
-      if(snap.empty && !seedStatus.resultsHistory){
-        markSeeded("resultsHistory");
-        db.collection("resultsHistory").doc(SEED_RESULTS_HISTORY_2026_08.month).set(SEED_RESULTS_HISTORY_2026_08);
-        db.collection("resultsHistory").doc(SEED_RESULTS_HISTORY_2026_09.month).set(SEED_RESULTS_HISTORY_2026_09);
-        var h = {};
-        h[SEED_RESULTS_HISTORY_2026_08.month] = SEED_RESULTS_HISTORY_2026_08;
-        h[SEED_RESULTS_HISTORY_2026_09.month] = SEED_RESULTS_HISTORY_2026_09;
-        state.resultsHistory = h;
+      if(snap.empty){
+        state.resultsHistory = {};
+        seedIfNeeded("resultsHistory", function(){
+          db.collection("resultsHistory").doc(SEED_RESULTS_HISTORY_2026_08.month).set(SEED_RESULTS_HISTORY_2026_08);
+          db.collection("resultsHistory").doc(SEED_RESULTS_HISTORY_2026_09.month).set(SEED_RESULTS_HISTORY_2026_09);
+          var h = {};
+          h[SEED_RESULTS_HISTORY_2026_08.month] = SEED_RESULTS_HISTORY_2026_08;
+          h[SEED_RESULTS_HISTORY_2026_09.month] = SEED_RESULTS_HISTORY_2026_09;
+          state.resultsHistory = h;
+          render();
+        });
       } else {
         var hist = {};
         snap.docs.forEach(function(d){ hist[d.id] = d.data(); });
@@ -1110,19 +1154,25 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
         }
       }
 
-      var has2nd = normTypes(ev.types).indexOf("2nd")>=0;
-      var subPool = MEMBERS.filter(function(m){ return m!=="とよかず" && m!=="やまぴー" && !takenToday[m]; });
-      subPool.sort(function(a,b){
-        var pa = membersState[a].subTotal + ((has2nd && (a==="まぎー"||a==="こばぴー"))?0.5:0) + (cellInfo(a,ev).value==="△"?0.3:0);
-        var pb = membersState[b].subTotal + ((has2nd && (b==="まぎー"||b==="こばぴー"))?0.5:0) + (cellInfo(b,ev).value==="△"?0.3:0);
-        return pa-pb || (Math.random()-0.5);
-      });
-      var subs = subPool.slice(0,2);
-      if(subs.indexOf("よう")>=0 && subs.indexOf("つよぽん")>=0){
-        var altIdx = -1;
-        for(var i=0;i<subPool.length;i++){ if(subs.indexOf(subPool[i])<0){ altIdx=i; break; } }
-        if(altIdx>=0){ subs[1] = subPool[altIdx]; }
-        else { warnings.push(ev.date+"：よう・つよぽんが同日サブになっています（候補不足のため回避できず）。"); }
+      // 食事会(CLC Finalのエイリアス含む、単体開催)はサブなし(実績データ
+      // どおり、メインのねぎ・とよかず固定のみで完結する)。
+      var isShokujiOnly = normTypes(ev.types).length===1 && normTypes(ev.types)[0]==="食事会";
+      var subs = [];
+      if(!isShokujiOnly){
+        var has2nd = normTypes(ev.types).indexOf("2nd")>=0;
+        var subPool = MEMBERS.filter(function(m){ return m!=="とよかず" && m!=="やまぴー" && !takenToday[m]; });
+        subPool.sort(function(a,b){
+          var pa = membersState[a].subTotal + ((has2nd && (a==="まぎー"||a==="こばぴー"))?0.5:0) + (cellInfo(a,ev).value==="△"?0.3:0);
+          var pb = membersState[b].subTotal + ((has2nd && (b==="まぎー"||b==="こばぴー"))?0.5:0) + (cellInfo(b,ev).value==="△"?0.3:0);
+          return pa-pb || (Math.random()-0.5);
+        });
+        subs = subPool.slice(0,2);
+        if(subs.indexOf("よう")>=0 && subs.indexOf("つよぽん")>=0){
+          var altIdx = -1;
+          for(var i=0;i<subPool.length;i++){ if(subs.indexOf(subPool[i])<0){ altIdx=i; break; } }
+          if(altIdx>=0){ subs[1] = subPool[altIdx]; }
+          else { warnings.push(ev.date+"：よう・つよぽんが同日サブになっています（候補不足のため回避できず）。"); }
+        }
       }
       subs.forEach(function(m){ membersState[m].subTotal++; });
 
