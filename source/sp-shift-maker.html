@@ -87,6 +87,9 @@ select.cell{width:52px;padding:4px 2px;text-align:center;font-weight:700}
 select.cell.warn{background:var(--danger-soft);color:var(--danger-ink);border-color:var(--danger)}
 select.cell.prevmonth1{background:var(--danger-soft);color:var(--danger-ink);border-color:var(--danger)}
 select.cell.prevmonth2{background:var(--warn-soft);color:var(--warn-ink);border-color:var(--warn)}
+.cell-note{font-size:9px;line-height:1.3;margin-top:2px;white-space:normal;max-width:56px}
+.cell-note.prevmonth1{color:var(--danger-ink)}
+.cell-note.prevmonth2{color:var(--warn-ink)}
 tr.completion-row td{background:var(--surface-2);border-top:2px solid var(--border)}
 tr.completion-row .datecell .d{font-weight:700;color:var(--text-2)}
 .complete-toggle{width:100%;padding:5px 2px;font-size:11px;font-weight:700;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text-3);cursor:pointer}
@@ -974,7 +977,15 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
             return db.collection("availability").doc(ev.id).set(state.availability[ev.id]);
           });
         });
-        var td = el("td",{},[sel]);
+        var tdChildren = [sel];
+        // 赤枠(前月メイン)・黄枠(前々月メイン)のセルには、対象の勉強会種別を
+        // 小さい文字で添える(枠の色だけでは何の勉強会か分からないとの指摘のため)。
+        if(info.prevMonth1 && !info.warn){
+          tdChildren.push(el("div",{class:"cell-note prevmonth1", text: info.prevMonth1Types.join("・")}));
+        } else if(info.prevMonth2 && !info.warn){
+          tdChildren.push(el("div",{class:"cell-note prevmonth2", text: info.prevMonth2Types.join("・")}));
+        }
+        var td = el("td",{},tdChildren);
         tr.appendChild(td);
       });
       tbody.appendChild(tr);
