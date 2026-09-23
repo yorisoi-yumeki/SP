@@ -86,10 +86,8 @@ td.datecell,th.datecell{text-align:left;min-width:190px}
 select.cell{width:52px;padding:4px 2px;text-align:center;font-weight:700}
 select.cell.warn{background:var(--danger-soft);color:var(--danger-ink);border-color:var(--danger)}
 select.cell.prevmonth1{background:var(--danger-soft);color:var(--danger-ink);border-color:var(--danger)}
-select.cell.prevmonth2{background:var(--warn-soft);color:var(--warn-ink);border-color:var(--warn)}
 .cell-note{font-size:9px;line-height:1.3;margin-top:2px;white-space:normal;max-width:56px}
 .cell-note.prevmonth1{color:var(--danger-ink)}
-.cell-note.prevmonth2{color:var(--warn-ink)}
 tr.completion-row td{background:var(--surface-2);border-top:2px solid var(--border)}
 tr.completion-row .datecell .d{font-weight:700;color:var(--text-2)}
 .complete-toggle{width:100%;padding:5px 2px;font-size:11px;font-weight:700;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text-3);cursor:pointer}
@@ -144,17 +142,18 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
       <ul class="rules-list">
         <li><b>よう・つよぽん</b>：メインは同日重複不可(サブも可能なら回避)</li>
         <li><b>まぎー・こばぴー</b>：2ndはメイン不可(サブも可能なら回避／不動産所持者のため)</li>
-        <li><b>とよかず・やまぴー</b>：勉強会は「飲み会・カフェ会・食事会（CLC Final）が単体開催」の日のみ対象。単体開催の飲み会は2人とも入ってよい。勉強会シフト数が少ない分Mシフトに多く入る</li>
+        <li><b>とよかず・やまぴー</b>：勉強会は「単体開催の飲み会・カフェ会」の日のみ対象（飲み会は通常の2名メイン＋どちらか1名の＋1枠、カフェ会は通常のメイン枠として2名を取り合う）。勉強会シフト数が少ない分Mシフトに多く入る</li>
         <li><b>CLC</b>：メインは2ヶ月連続不可(前月実績から自動判定)</li>
         <li><b>Enトレ2</b>：その月の対象者はメイン不可</li>
         <li><b>カフェ会</b>：メインはM20チャレンジ中の人のみ</li>
-        <li><b>前月メイン</b>：前月は赤、前々月は黄で表示。できれば別の人を優先(必須ではない)</li>
+        <li><b>食事会</b>：メインはねぎ・とよかず固定（CLC Finalも同様）</li>
+        <li><b>前月メイン</b>：前月同じ種別でメインだった人は赤で表示。できれば別の人を優先(必須ではない)</li>
         <li><b>合計バランス</b>：勉強会メイン＋M入力数を9名で均等化／勉強会サブは別枠で均等化</li>
       </ul>
       <div class="rules-legend">
         <div>◯＝入れる　／　△＝できれば避けたい　／　×＝不可</div>
         <div>×は自動生成で除外、△は優先度を下げて割当</div>
-        <div>可否表の赤背景＝前月メイン、黄背景＝前々月メイン</div>
+        <div>可否表の赤背景＝前月メイン</div>
       </div>
     </aside>
 
@@ -178,7 +177,7 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
       <details class="disclosure" id="availCard" open>
         <summary><span class="stitle">③可否表（◯入れる / △出来れば避けたい / ×不可）</span><span class="ssum" id="availSummary"></span></summary>
         <div class="disclosure-body">
-          <p class="desc">ルール上入れない日は自動で×が入ります。本人の希望で変更できますが、×から変更すると警告色で表示されます。赤背景は「前月、同じ種別でメインだった人」、黄背景は「前々月、同じ種別でメインだった人」の目印です（できれば今回は別の人を優先／必須ではありません）。左のルール一覧も参照してください。</p>
+          <p class="desc">ルール上入れない日は自動で×が入ります。本人の希望で変更できますが、×から変更すると警告色で表示されます。赤背景は「前月、同じ種別でメインだった人」の目印です（できれば今回は別の人を優先／必須ではありません）。左のルール一覧も参照してください。</p>
           <div class="tablewrap">
             <table id="availTable"><thead></thead><tbody></tbody></table>
           </div>
@@ -207,7 +206,7 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
 
       <section class="card" id="currentMonthCard">
         <h2>今月のシフト</h2>
-        <p class="desc">メイン合計（勉強会+M）とサブ回数（勉強会のみ）が均等になるよう自動で割り当てます。表の下にある「回数(確認用)」はメイン・サブの列とは分離した確認用の一覧で、コピーする内容には含まれません（合計＝勉強会メイン＋M入力数、サブは別集計。「Mシフト必要回数」は勉強会メイン+サブの実績をもとに自動算出される参考値です）。「コピー」を押すとLINE等に貼り付けられるテキストをコピーし、同時に来月の判定に必要な情報（CLCの前月メイン・前月/前々月メイン等）を記録します。</p>
+        <p class="desc">メイン合計（勉強会+M）とサブ回数（勉強会のみ）が均等になるよう自動で割り当てます。表の下にある「回数(確認用)」はメイン・サブの列とは分離した確認用の一覧で、コピーする内容には含まれません（合計＝勉強会メイン＋M入力数、サブは別集計。「Mシフト必要回数」は勉強会メイン+サブの実績をもとに自動算出される参考値です）。「コピー」を押すとLINE等に貼り付けられるテキストをコピーし、同時に来月の判定に必要な情報（CLCの前月メイン・種別ごとの前月メイン等）を記録します。</p>
         <div class="row">
           <button id="genBtn">自動生成する</button>
           <button id="copyBtn" class="secondary">この結果をコピー</button>
@@ -232,8 +231,8 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
   function normType(t){ return TYPE_ALIASES[t] || t; }
   function normTypes(types){ return (types||[]).map(normType); }
   var PAIR_NOTE = {
-    "とよかず":"とよかず・やまぴー：単体開催の飲み会/カフェ会/食事会のみ対象",
-    "やまぴー":"とよかず・やまぴー：単体開催の飲み会/カフェ会/食事会のみ対象",
+    "とよかず":"とよかず・やまぴー：単体開催の飲み会(+1枠)・カフェ会(通常枠)のみ対象。食事会はとよかずのみねぎと固定",
+    "やまぴー":"とよかず・やまぴー：単体開催の飲み会(+1枠)・カフェ会(通常枠)のみ対象。食事会は対象外",
     "まぎー":"まぎー・こばぴー：2ndはメイン不可（サブも可能なら回避）",
     "こばぴー":"まぎー・こばぴー：2ndはメイン不可（サブも可能なら回避）",
     "よう":"よう・つよぽん：メインは同日重複不可",
@@ -350,10 +349,16 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
       return social.length===1 ? social[0] : null;
     })();
 
+    // 食事会(CLC Finalのエイリアス含む、単体開催時)は、ねぎ・とよかず固定。
+    // 他のメンバー(やまぴーも含む)は既定で×(本人の希望で個別に変更は可能)。
+    if(isSocialOnly && types[0]==="食事会"){
+      if(member==="ねぎ" || member==="とよかず") return {value:"◯", reason:"食事会はねぎ・とよかず固定"};
+      return {value:"×", reason:"食事会はねぎ・とよかず固定のため対象外"};
+    }
+
     if(member==="とよかず" || member==="やまぴー"){
-      if(!socialType) return {value:"×", reason:"複合日のため対象外（単体開催の飲み会/カフェ会/食事会のみ対象）"};
+      if(!socialType) return {value:"×", reason:"複合日のため対象外（単体開催の飲み会/カフェ会のみ対象）"};
       if(socialType==="カフェ会" && m20List.length>0 && m20List.indexOf(member)<0) return {value:"×", reason:"カフェ会はM20チャレンジ中の人のみ"};
-      if(socialType==="飲み会" && isSocialOnly) return {value:"◯", reason:"単体開催の飲み会(2人とも入ってよい)"};
       if(socialType==="飲み会") return {value:"◯", reason:"＋1枠（飲み会、最大1名）対象"};
       return {value:"◯", reason:"通常のメイン枠（"+socialType+"）対象"};
     }
@@ -370,16 +375,12 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
     var override = av && av.values ? av.values[member] : null;
     var value = override || rd.value;
     var warn = !!override && override!=="×" && rd.value==="×";
-    // 前月・前々月、同じ種別でメインだった人の目印(前月=赤／前々月=黄)。
-    // 複合日(例:Lmtg・CLC・フェス)では、どの種別が一致したのかを
-    // matchedTypesに残す(CLCの2ヶ月連続禁止ルールとは無関係な、あくまで
-    // ソフトな「同種別メイン回避」の目印であることが見た目でも分かるように)。
-    // 前月に該当する場合は前々月チェックを省略(前月のほうを優先表示)。
+    // 前月、同じ種別でメインだった人の目印(赤)。複合日(例:Lmtg・CLC・フェス)
+    // では、どの種別が一致したのかをmatchedTypesに残す(CLCの2ヶ月連続禁止
+    // ルールとは無関係な、あくまでソフトな「同種別メイン回避」の目印)。
     var matched1 = matchedTypesForMonthsBack(member, ev, 1);
-    var matched2 = matched1.length===0 ? matchedTypesForMonthsBack(member, ev, 2) : [];
     return { value:value, override:!!override, ruleDefault:rd, warn:warn,
-      prevMonth1: matched1.length>0, prevMonth2: matched2.length>0,
-      prevMonth1Types: matched1, prevMonth2Types: matched2 };
+      prevMonth1: matched1.length>0, prevMonth1Types: matched1 };
   }
 
   // n ヶ月前、同じ種別でメインだった人はできれば今月は避けたい(メインは当日その勉強会に出られないため)
@@ -953,7 +954,7 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
       var tr = el("tr",{},[dcell]);
       MEMBERS.forEach(function(m){
         var info = cellInfo(m, ev);
-        var sel = el("select",{class:"cell"+(info.warn?" warn":"")+(info.prevMonth1&&!info.warn?" prevmonth1":"")+(info.prevMonth2&&!info.warn?" prevmonth2":"")});
+        var sel = el("select",{class:"cell"+(info.warn?" warn":"")+(info.prevMonth1&&!info.warn?" prevmonth1":"")});
         ["◯","△","×"].forEach(function(opt){
           var o = document.createElement("option"); o.value=opt; o.textContent=opt;
           if(opt===info.value) o.selected = true;
@@ -962,7 +963,6 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
         var titleParts = [];
         if(info.ruleDefault.reason) titleParts.push(info.ruleDefault.reason);
         if(info.prevMonth1) titleParts.push("前月「"+info.prevMonth1Types.join("・")+"」でメインでした（できれば別の人を優先／CLCの連続禁止ルールとは別のソフトな目印です)");
-        else if(info.prevMonth2) titleParts.push("前々月「"+info.prevMonth2Types.join("・")+"」でメインでした（参考情報）");
         if(titleParts.length) sel.title = titleParts.join(" / ");
         sel.addEventListener("change", function(){
           if(!db) return;
@@ -978,12 +978,10 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
           });
         });
         var tdChildren = [sel];
-        // 赤枠(前月メイン)・黄枠(前々月メイン)のセルには、対象の勉強会種別を
-        // 小さい文字で添える(枠の色だけでは何の勉強会か分からないとの指摘のため)。
+        // 赤枠(前月メイン)のセルには、対象の勉強会種別を小さい文字で添える
+        // (枠の色だけでは何の勉強会か分からないとの指摘のため)。
         if(info.prevMonth1 && !info.warn){
           tdChildren.push(el("div",{class:"cell-note prevmonth1", text: info.prevMonth1Types.join("・")}));
-        } else if(info.prevMonth2 && !info.warn){
-          tdChildren.push(el("div",{class:"cell-note prevmonth2", text: info.prevMonth2Types.join("・")}));
         }
         var td = el("td",{},tdChildren);
         tr.appendChild(td);
@@ -1056,14 +1054,15 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
 
     sortedEvents.forEach(function(ev){
       var socialType = extraSlotType(ev);
-      var isStandaloneDrink = normTypes(ev.types).length===1 && socialType==="飲み会";
-      // カフェ会・食事会、および単体開催の飲み会は、とよかず・やまぴーも
-      // 通常のメイン枠を他メンバーと取り合う(単体開催の飲み会は2人とも
-      // 一緒に入ってよいため、メイン枠を3枠に拡張する)。
-      // 複合日の飲み会(例：代トレ・コミュ2nd・飲み会)は、従来通り2名+
-      // とよかず/やまぴーから最大1名の+1枠のみ(実績データと同じ挙動)。
-      var includeExtraMembersInMain = socialType==="カフェ会" || socialType==="食事会" || isStandaloneDrink;
-      var targetMainCount = isStandaloneDrink ? 3 : 2;
+      // カフェ会・食事会は、とよかず・やまぴーも通常のメイン枠を他メンバーと
+      // 取り合う(食事会はruleDefaultでねぎ・とよかず固定、他は既定で×になる
+      // ため実質この2人に絞られる)。
+      // 飲み会は単体開催・複合日を問わず、通常の2名メイン＋とよかず/やまぴー
+      // から最大1名の+1枠、という同じ扱いに統一する（単体開催は3人体制で
+      // 両方入れる、としていたが、8月の1件の実績だけを根拠にした過度な
+      // 一般化だったとユーザーが確認したため廃止）。
+      var includeExtraMembersInMain = socialType==="カフェ会" || socialType==="食事会";
+      var targetMainCount = 2;
       var takenToday = {};
 
       var pool = MEMBERS.filter(function(m){
@@ -1097,7 +1096,7 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
       mains.forEach(function(m){ membersState[m].mainTotal++; membersState[m].studyMain++; takenToday[m]=true; });
 
       var extraPerson = null;
-      if(socialType==="飲み会" && !isStandaloneDrink){
+      if(socialType==="飲み会"){
         var epool = ["とよかず","やまぴー"].filter(function(m){ return cellInfo(m, ev).value!=="×" && mains.indexOf(m)<0; });
         epool.sort(function(a,b){
           var pa = membersState[a].mainTotal + (wasMainForSameTypeLastMonth(a,ev)?0.5:0) + (cellInfo(a,ev).value==="△"?0.4:0);
