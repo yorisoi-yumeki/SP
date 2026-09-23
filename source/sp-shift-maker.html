@@ -26,6 +26,8 @@ body{
 .rules-list{display:flex;flex-direction:column;gap:10px;list-style:none;margin:0;padding:0}
 .rules-list li{font-size:11.5px;line-height:1.55;color:var(--text-2);padding-left:14px;position:relative}
 .rules-list li::before{content:"";position:absolute;left:0;top:6px;width:6px;height:6px;border-radius:2px;background:var(--accent)}
+.rules-list li.group-label{padding-left:0;padding-top:8px;margin-top:2px;border-top:1px solid var(--border);font-size:10.5px;font-weight:700;color:var(--text-3)}
+.rules-list li.group-label::before{content:none}
 .rules-list b{color:var(--text);font-weight:700}
 .rules-legend{margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:11px;color:var(--text-2);display:flex;flex-direction:column;gap:4px}
 .compare-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:20px;align-items:start}
@@ -140,15 +142,14 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
     <aside class="rules-panel">
       <h2>シフトのルール(常時表示)</h2>
       <ul class="rules-list">
-        <li><b>よう・つよぽん</b>：メインは同日重複不可(サブも可能なら回避)</li>
+        <li><b>受付（よう・つよぽん）</b>：CLCはメイン不可。他の勉強会もメインは同日重複不可(サブも可能なら回避)</li>
         <li><b>まぎー・こばぴー</b>：2ndはメイン不可(サブも可能なら回避／不動産所持者のため)</li>
-        <li><b>とよかず・やまぴー</b>：勉強会は「単体開催の飲み会・カフェ会」の日のみ対象（飲み会は通常の2名メイン＋どちらか1名の＋1枠、カフェ会は通常のメイン枠として2名を取り合う）。勉強会シフト数が少ない分Mシフトに多く入る</li>
+        <li><b>IT部（とよかず・やまぴー）</b>：勉強会は基本入らないが、単体開催の飲み会・カフェ会・食事会のみ可能。勉強会シフト数が少ない分Mシフトに多く入る</li>
+        <li><b>飲み会のみ</b>：3名体制</li>
         <li><b>CLC</b>：メインは2ヶ月連続不可(前月実績から自動判定)</li>
+        <li class="group-label">月ごとにメンバー変動可能性あり</li>
         <li><b>Enトレ2</b>：その月の対象者はメイン不可</li>
         <li><b>カフェ会</b>：メインはM20チャレンジ中の人のみ</li>
-        <li><b>食事会</b>：メインはねぎ・とよかず固定（CLC Finalも同様）</li>
-        <li><b>前月メイン</b>：前月同じ種別でメインだった人は赤で表示。できれば別の人を優先(必須ではない)</li>
-        <li><b>合計バランス</b>：勉強会メイン＋M入力数を9名で均等化／勉強会サブは別枠で均等化</li>
       </ul>
       <div class="rules-legend">
         <div>◯＝入れる　／　△＝できれば避けたい　／　×＝不可</div>
@@ -231,12 +232,12 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
   function normType(t){ return TYPE_ALIASES[t] || t; }
   function normTypes(types){ return (types||[]).map(normType); }
   var PAIR_NOTE = {
-    "とよかず":"とよかず・やまぴー：単体開催の飲み会(+1枠)・カフェ会(通常枠)のみ対象。食事会はとよかずのみねぎと固定",
-    "やまぴー":"とよかず・やまぴー：単体開催の飲み会(+1枠)・カフェ会(通常枠)のみ対象。食事会は対象外",
+    "とよかず":"IT部（とよかず・やまぴー）：単体開催の飲み会/カフェ会/食事会のみ対象",
+    "やまぴー":"IT部（とよかず・やまぴー）：単体開催の飲み会/カフェ会/食事会のみ対象",
     "まぎー":"まぎー・こばぴー：2ndはメイン不可（サブも可能なら回避）",
     "こばぴー":"まぎー・こばぴー：2ndはメイン不可（サブも可能なら回避）",
-    "よう":"よう・つよぽん：メインは同日重複不可",
-    "つよぽん":"よう・つよぽん：メインは同日重複不可"
+    "よう":"受付（よう・つよぽん）：CLCはメイン不可。メインは同日重複不可",
+    "つよぽん":"受付（よう・つよぽん）：CLCはメイン不可。メインは同日重複不可"
   };
 
   var db = null;
@@ -349,19 +350,13 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
       return social.length===1 ? social[0] : null;
     })();
 
-    // 食事会(CLC Finalのエイリアス含む、単体開催時)は、ねぎ・とよかず固定。
-    // 他のメンバー(やまぴーも含む)は既定で×(本人の希望で個別に変更は可能)。
-    if(isSocialOnly && types[0]==="食事会"){
-      if(member==="ねぎ" || member==="とよかず") return {value:"◯", reason:"食事会はねぎ・とよかず固定"};
-      return {value:"×", reason:"食事会はねぎ・とよかず固定のため対象外"};
-    }
-
     if(member==="とよかず" || member==="やまぴー"){
-      if(!socialType) return {value:"×", reason:"複合日のため対象外（単体開催の飲み会/カフェ会のみ対象）"};
+      if(!socialType) return {value:"×", reason:"複合日のため対象外（単体開催の飲み会/カフェ会/食事会のみ対象）"};
       if(socialType==="カフェ会" && m20List.length>0 && m20List.indexOf(member)<0) return {value:"×", reason:"カフェ会はM20チャレンジ中の人のみ"};
       if(socialType==="飲み会") return {value:"◯", reason:"＋1枠（飲み会、最大1名）対象"};
       return {value:"◯", reason:"通常のメイン枠（"+socialType+"）対象"};
     }
+    if(hasCLC && (member==="よう"||member==="つよぽん")) return {value:"×", reason:"受付(よう・つよぽん)はCLCメイン不可"};
     if(hasCLC && clcPrevMain.indexOf(member)>=0) return {value:"×", reason:"前月CLCメイン担当のため2ヶ月連続不可"};
     if(has2nd && (member==="まぎー"||member==="こばぴー")) return {value:"×", reason:"2ndはメイン不可"};
     if(hasEntre2 && entre2Target.indexOf(member)>=0) return {value:"×", reason:"Enトレ2対象者のためメイン不可"};
