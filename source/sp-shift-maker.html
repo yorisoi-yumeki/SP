@@ -386,17 +386,31 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
     var map = {};
     if(!hist || !hist.assignments) return map;
     hist.assignments.forEach(function(a){
-      var people = (a.main||[]).concat(a.extra ? [a.extra] : []);
-      normTypes(a.types).forEach(function(t){
-        map[t] = map[t] || {};
-        people.forEach(function(p){ map[t][p] = true; });
+      var types = normTypes(a.types);
+      (a.main||[]).forEach(function(p){
+        types.forEach(function(t){ map[t] = map[t] || {}; map[t][p] = true; });
       });
+      // ＋1枠(IT部の飲み会最大1名)は、その日の全種別ではなく＋1の対象種別
+      // (現仕様上は飲み会のみ)にのみ「前月メイン」として扱う。複合日
+      // (例：代トレ・コミュ2nd・飲み会)で＋1の人を代トレ/コミュ2ndの
+      // メインだったと誤認しないようにするため。
+      if(a.extra){
+        var extraType = extraSlotType(a);
+        if(extraType){ map[extraType] = map[extraType] || {}; map[extraType][a.extra] = true; }
+      }
     });
     return map;
   }
+  // 代説は月に2回あり、どちらかには必ず出られるため、前月に担当していても
+  // 今月は避ける必要がない(＝赤字にしない)。常時表示のルール一覧には出さない
+  // 内部的な例外。
+  var PREV_MONTH_CHECK_EXCLUDED_TYPES = ["代説"];
   function matchedTypesForMonthsBack(member, ev, monthsBack){
     var map = mainByTypeMapForMonthsBack(monthsBack);
-    return normTypes(ev.types).filter(function(t){ return map[t] && map[t][member]; });
+    return normTypes(ev.types).filter(function(t){
+      if(PREV_MONTH_CHECK_EXCLUDED_TYPES.indexOf(t)>=0) return false;
+      return map[t] && map[t][member];
+    });
   }
   function wasMainForSameType(member, ev, monthsBack){
     return matchedTypesForMonthsBack(member, ev, monthsBack).length>0;
@@ -1018,8 +1032,11 @@ textarea{width:100%;font-family:inherit;font-size:12px;padding:8px;border-radius
         });
         var tdChildren = [sel];
         // 赤枠(前月メイン)のセルには、対象の勉強会種別を小さい文字で添える
-        // (枠の色だけでは何の勉強会か分からないとの指摘のため)。
-        if(info.prevMonth1 && !info.warn){
+        // (枠の色だけでは何の勉強会か分からないとの指摘のため)。warn状態
+        // (×ルールを上書きした状態)でも、前月メインの情報は独立して有用
+        // なので出す(以前は!info.warnで抑制していたが、こばぴーのように
+        // 前月メインかつ上書き済みのセルで表示が消えるバグになっていた)。
+        if(info.prevMonth1){
           tdChildren.push(el("div",{class:"cell-note prevmonth1", text: info.prevMonth1Types.join("・")}));
         }
         var td = el("td",{},tdChildren);
